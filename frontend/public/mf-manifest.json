@@ -2,5 +2,6 @@
   { "name": "registry",  "js": "/admin/mf/registry/index.js",   "css": "/admin/mf/registry/style.css" },
   { "name": "simulator", "js": "/admin/mf/simulator/index.js",  "css": "/admin/mf/simulator/style.css" },
   { "name": "monitoring","js": "/admin/mf/monitoring/index.js", "css": "/admin/mf/monitoring/style.css" },
-  { "name": "docs",      "js": "/admin/mf/docs/index.js",       "css": "/admin/mf/docs/style.css" }
+  { "name": "docs",      "js": "/admin/mf/docs/index.js",       "css": "/admin/mf/docs/style.css" },
+  { "name": "rbac",      "js": "/admin/mf/rbac/index.js",       "css": "/admin/mf/rbac/style.css" }
 ]

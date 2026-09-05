@@ -12,7 +12,8 @@ const micro = (name) => {
       registry: () => import('./micro/registry/RegistryApp.vue'),
       simulator: () => import('./micro/simulator/SimulatorApp.vue'),
       monitoring: () => import('./micro/monitoring/MonitoringApp.vue'),
-      docs: () => import('./micro/docs/DocsApp.vue')
+      docs: () => import('./micro/docs/DocsApp.vue'),
+      rbac: () => import('./micro/rbac/RbacApp.vue'),
     }
     return views[name]
   }
@@ -27,6 +28,7 @@ const routes = [
   { path: '/simulate', name: 'simulate', component: micro('simulator'), props: () => ({ name: 'simulator' }) },
   { path: '/monitoring', name: 'monitoring', component: micro('monitoring'), props: () => ({ name: 'monitoring' }) },
   { path: '/docs', name: 'docs', component: micro('docs'), props: () => ({ name: 'docs' }) },
+  { path: '/rbac', name: 'rbac', component: micro('rbac'), props: () => ({ name: 'rbac' }) },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 

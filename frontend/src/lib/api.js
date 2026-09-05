@@ -61,5 +61,43 @@ export const api = {
   restoreApi: (id) => request('POST', `/gateway/apis/${id}/restore`),
   previewApi: (id) => request('GET', `/gateway/apis/${id}/preview`),
   statsApi: (id) => request('GET', `/gateway/apis/${id}/stats`),
-  publish: () => request('POST', '/gateway/publish')
+  publish: () => request('POST', '/gateway/publish'),
+
+  // ── users ──
+  listUsers: () => request('GET', '/users'),
+  getUser: (id) => request('GET', `/users/${id}`),
+  createUser: (p) => request('POST', '/users', p),
+  updateUser: (id, p) => request('PUT', `/users/${id}`, p),
+  deleteUser: (id) => request('DELETE', `/users/${id}`),
+  restoreUser: (id) => request('POST', `/users/${id}/restore`),
+
+  // ── roles ──
+  listRoles: () => request('GET', '/roles'),
+  getRole: (id) => request('GET', `/roles/${id}`),
+  createRole: (p) => request('POST', '/roles', p),
+  updateRole: (id, p) => request('PUT', `/roles/${id}`, p),
+  deleteRole: (id) => request('DELETE', `/roles/${id}`),
+  restoreRole: (id) => request('POST', `/roles/${id}/restore`),
+  grantPermission: (roleId, permissionId) => request('POST', `/roles/${roleId}/permissions`, { permission_id: permissionId }),
+  revokePermission: (roleId, permissionId) => request('DELETE', `/roles/${roleId}/permissions/${permissionId}`),
+
+  // ── permissions ──
+  listPermissions: () => request('GET', '/permissions'),
+  createPermission: (p) => request('POST', '/permissions', p),
+  updatePermission: (id, p) => request('PUT', `/permissions/${id}`, p),
+  deletePermission: (id) => request('DELETE', `/permissions/${id}`),
+  restorePermission: (id) => request('POST', `/permissions/${id}/restore`),
+
+  // ── rate limits ──
+  listRateLimits: () => request('GET', '/rate-limits'),
+  createRateLimit: (p) => request('POST', '/rate-limits', p),
+  updateRateLimit: (id, p) => request('PUT', `/rate-limits/${id}`, p),
+  deleteRateLimit: (id) => request('DELETE', `/rate-limits/${id}`),
+  restoreRateLimit: (id) => request('POST', `/rate-limits/${id}/restore`),
+
+  // ── audit logs ──
+  listAuditLogs: (params) => {
+    const q = params ? '?' + new URLSearchParams(params).toString() : ''
+    return request('GET', `/audit-logs${q}`)
+  },
 }

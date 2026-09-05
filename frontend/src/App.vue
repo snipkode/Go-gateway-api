@@ -15,7 +15,8 @@ const nav = [
   { name: 'apis', label: 'Registry', to: '/apis', icon: 'M4 4h16v5H4zM4 11h16v5H4zM4 18h16v2H4z' },
   { name: 'simulate', label: 'Simulate', to: '/simulate', icon: 'M7 9h10M7 13h10M5 17h14' },
   { name: 'monitoring', label: 'Monitor', to: '/monitoring', icon: 'M5 19V9M10 19V5M15 19v-7M20 19V3' },
-  { name: 'docs', label: 'Docs', to: '/docs', icon: 'M5 4h14v16H5zM9 8h6M9 12h6' }
+  { name: 'rbac', label: 'RBAC', to: '/rbac', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zM23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75' },
+  { name: 'docs', label: 'Docs', to: '/docs', icon: 'M5 4h14v16H5zM9 8h6M9 12h6' },
 ]
 
 const page = computed(() => nav.find((n) => route.path.startsWith(n.to)) || nav[0])
@@ -101,7 +102,7 @@ function logout() {
 
       <!-- iOS-style bottom tab bar (mobile) -->
       <nav class="fixed bottom-0 left-0 right-0 z-20 border-t md:hidden" style="border-color: var(--color-line); background: rgba(255,255,255,0.9); backdrop-filter: saturate(180%) blur(18px); padding-bottom: env(safe-area-inset-bottom)">
-        <div class="grid grid-cols-5">
+        <div class="grid grid-cols-6">
           <RouterLink v-for="n in nav" :key="n.name" :to="n.to"
             class="tappable flex flex-col items-center gap-0.5 py-1.5"
             :class="route.path.startsWith(n.to) ? 'text-accent' : 'text-mute'">
