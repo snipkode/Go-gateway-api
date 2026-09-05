@@ -7,6 +7,24 @@ const selectedId = ref('')
 const stats = ref(null)
 let timer = null
 
+// ── pagination ──
+const PAGE_SIZE = 10
+const page = ref(1)
+
+const recentSorted = computed(() => (stats.value?.recent ?? []).slice().reverse())
+const totalPages = computed(() => Math.max(1, Math.ceil(recentSorted.value.length / PAGE_SIZE)))
+const pageItems = computed(() => {
+  const start = (page.value - 1) * PAGE_SIZE
+  return recentSorted.value.slice(start, start + PAGE_SIZE)
+})
+
+// reset to page 1 whenever new stats arrive or API changes
+watch(stats, () => { page.value = 1 })
+watch(selectedId, () => { page.value = 1 })
+
+function prevPage() { if (page.value > 1) page.value-- }
+function nextPage() { if (page.value < totalPages.value) page.value++ }
+
 onMounted(async () => {
   try {
     apis.value = await api.listApis()
@@ -62,7 +80,8 @@ const cards = computed(() => [
     </header>
 
     <select v-model="selectedId"
-      class="mb-4 w-full rounded-xl border bg-panel px-3 py-2.5 text-[14px] shadow-sm focus:outline-none" :style="{ borderColor: 'var(--color-line)' }">
+      class="mb-4 w-full rounded-xl border bg-panel px-3 py-2.5 text-[14px] shadow-sm focus:outline-none"
+      :style="{ borderColor: 'var(--color-line)' }">
       <option v-for="a in apis" :key="a.id" :value="a.id">{{ a.name }} — {{ a.base_path }}</option>
     </select>
 
@@ -75,24 +94,67 @@ const cards = computed(() => [
       </div>
 
       <div class="mt-3 overflow-hidden rounded-[18px] bg-panel shadow-sm">
-        <div class="label-sm border-b px-4 py-2.5" :style="{ borderColor: 'var(--color-line)' }">
-          Recent requests ({{ stats.recent.length }})
+        <!-- header -->
+        <div class="flex items-center justify-between border-b px-4 py-2.5" :style="{ borderColor: 'var(--color-line)' }">
+          <span class="label-sm">Recent requests ({{ recentSorted.length }})</span>
+          <span class="text-[11px] text-mute">halaman {{ page }} / {{ totalPages }}</span>
         </div>
-        <div class="thin-scroll max-h-[52vh] divide-y divide-solid overflow-y-auto" :style="{ borderColor: 'var(--color-line)' }">
-          <div v-for="(r, i) in stats.recent.slice().reverse()" :key="i" class="flex items-center gap-2.5 px-4 py-2">
-            <span class="w-7 shrink-0 text-center text-[11px] font-bold" :class="statusClass(r.status)">{{ r.status }}</span>
+
+        <!-- rows -->
+        <div class="divide-y divide-solid" :style="{ borderColor: 'var(--color-line)' }">
+          <div v-for="(r, i) in pageItems" :key="i" class="flex items-center gap-2.5 px-4 py-2">
+            <span class="w-7 shrink-0 text-center text-[11px] font-bold rounded-full py-0.5"
+              :class="statusClass(r.status)">{{ r.status }}</span>
             <div class="min-w-0 flex-1">
               <div class="truncate text-[13px]">{{ r.method }} {{ r.uri }}</div>
               <div class="text-[11px] text-mute">{{ r.time?.slice(11) }} · {{ r.ip }}</div>
             </div>
-            <span class="text-[11px] text-mute">{{ (r.rt * 1000).toFixed(0) }}ms</span>
+            <span class="shrink-0 text-[11px] text-mute">{{ (r.rt * 1000).toFixed(0) }}ms</span>
           </div>
-          <div v-if="!stats.recent.length" class="px-4 py-10 text-center text-mute">
+          <div v-if="!recentSorted.length" class="px-4 py-10 text-center text-mute">
             No proxied requests for {{ selected?.name }} yet.
           </div>
         </div>
+
+        <!-- pagination controls -->
+        <div v-if="totalPages > 1"
+          class="flex items-center justify-between border-t px-4 py-2.5"
+          :style="{ borderColor: 'var(--color-line)' }">
+          <button
+            class="tappable flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[12px] transition-colors hover:bg-panel-2 disabled:opacity-30"
+            :disabled="page === 1"
+            @click="prevPage"
+          >
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M8 2.5L4.5 6.5l3.5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Prev
+          </button>
+
+          <!-- page numbers -->
+          <div class="flex items-center gap-1">
+            <button
+              v-for="p in totalPages" :key="p"
+              class="tappable h-7 w-7 rounded-lg text-[12px] font-medium transition-colors"
+              :class="p === page ? 'bg-[var(--color-accent)] text-white' : 'text-mute hover:bg-panel-2'"
+              @click="page = p"
+            >{{ p }}</button>
+          </div>
+
+          <button
+            class="tappable flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[12px] transition-colors hover:bg-panel-2 disabled:opacity-30"
+            :disabled="page === totalPages"
+            @click="nextPage"
+          >
+            Next
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+              <path d="M5 2.5L8.5 6.5 5 10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
       </div>
     </template>
+
     <div v-else class="mt-8 text-center text-mute">Select an API to see live traffic.</div>
   </div>
 </template>
