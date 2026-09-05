@@ -55,6 +55,7 @@ const attachJwt = ref(true)
 const bodyText = ref('')
 const sending = ref(false)
 const resp = ref(null)
+const inspectTab = ref('body') // 'body' | 'headers' | 'request'
 const tokenText = ref('')
 const tokenCopied = ref(false)
 const allMethodBody = ['POST', 'PUT', 'PATCH']
@@ -128,19 +129,38 @@ async function send() {
   if (!selectedId.value) return
   sending.value = true
   resp.value = null
+  inspectTab.value = 'body'
   const url = buildUrl()
-  const headers = { Accept: 'application/json' }
-  if (allMethodBody.includes(method.value)) headers['Content-Type'] = 'application/json'
-  if (attachJwt.value && auth.token) headers['Authorization'] = 'Bearer ' + auth.token
+  const reqHeaders = { Accept: 'application/json' }
+  if (allMethodBody.includes(method.value)) reqHeaders['Content-Type'] = 'application/json'
+  if (attachJwt.value && auth.token) reqHeaders['Authorization'] = 'Bearer ' + auth.token
   const started = performance.now()
   const ctrl = new AbortController()
   const t = setTimeout(() => ctrl.abort(), 10000)
   try {
-    const r = await fetch(url, { method: method.value, headers, body: allMethodBody.includes(method.value) && bodyText.value ? bodyText.value : undefined, signal: ctrl.signal })
+    const r = await fetch(url, { method: method.value, headers: reqHeaders, body: allMethodBody.includes(method.value) && bodyText.value ? bodyText.value : undefined, signal: ctrl.signal })
     const text = await r.text()
-    resp.value = { ok: r.ok, status: r.status, ms: Math.round(performance.now() - started), size: text.length, text, url }
+    const resHeaders = {}
+    r.headers.forEach((v, k) => { resHeaders[k] = v })
+    resp.value = {
+      ok: r.ok,
+      status: r.status,
+      statusText: r.statusText,
+      ms: Math.round(performance.now() - started),
+      size: text.length,
+      text,
+      url,
+      method: method.value,
+      reqHeaders,
+      resHeaders,
+    }
   } catch (e) {
-    resp.value = { ok: false, status: 0, ms: Math.round(performance.now() - started), size: 0, text: e.name === 'AbortError' ? 'Request timed out after 10s' : `Failed to send: ${e.message}`, url }
+    resp.value = {
+      ok: false, status: 0, statusText: '',
+      ms: Math.round(performance.now() - started), size: 0,
+      text: e.name === 'AbortError' ? 'Request timed out after 10s' : `Gagal mengirim: ${e.message}`,
+      url, method: method.value, reqHeaders, resHeaders: {},
+    }
   } finally {
     clearTimeout(t)
     sending.value = false
@@ -369,17 +389,60 @@ function pretty(respText) {
         </button>
       </div>
 
+      <!-- inspect panel -->
       <div v-if="resp" class="mt-3 overflow-hidden rounded-xl border" :style="{ borderColor: 'var(--color-line)' }">
+        <!-- status bar -->
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1 border-b px-3 py-2 text-[11px]"
           :style="{ borderColor: 'var(--color-line)' }">
-          <span class="rounded-full px-2 py-0.5 font-bold shrink-0"
+          <span class="shrink-0 rounded-full px-2 py-0.5 font-bold"
             :class="resp.status === 0 ? 'bg-panel-2 text-mute' : resp.status < 400 ? 'bg-ok/10 text-ok' : 'bg-bad/10 text-bad'">
-            {{ resp.status || 'ERR' }}
+            {{ resp.status || 'ERR' }}{{ resp.statusText ? ' ' + resp.statusText : '' }}
           </span>
-          <span class="shrink-0 text-mute">{{ resp.ms }}ms · {{ resp.size }}B</span>
-          <span class="w-full truncate text-mute">{{ resp.url }}</span>
+          <span class="shrink-0 text-mute">{{ resp.ms }}ms</span>
+          <span class="shrink-0 text-mute">{{ resp.size }}B</span>
+          <span class="w-full truncate text-mute">{{ resp.method }} {{ resp.url }}</span>
         </div>
-        <pre class="thin-scroll m-0 max-h-[280px] overflow-auto px-3 py-2.5 text-[11px] leading-relaxed">{{ pretty(resp.text) || '(body kosong)' }}</pre>
+
+        <!-- tab bar -->
+        <div class="flex border-b text-[11px]" :style="{ borderColor: 'var(--color-line)' }">
+          <button v-for="tab in ['body', 'headers', 'request']" :key="tab"
+            class="tappable px-3 py-2 font-medium capitalize transition-colors"
+            :class="inspectTab === tab
+              ? 'border-b-2 border-[var(--color-accent)] text-[var(--color-accent)]'
+              : 'text-mute hover:text-ink'"
+            :style="inspectTab === tab ? { marginBottom: '-1px' } : {}"
+            @click="inspectTab = tab">
+            {{ tab === 'body' ? 'Body' : tab === 'headers' ? 'Res Headers' : 'Req Headers' }}
+          </button>
+        </div>
+
+        <!-- body tab -->
+        <pre v-if="inspectTab === 'body'"
+          class="thin-scroll m-0 max-h-[280px] overflow-auto px-3 py-2.5 text-[11px] leading-relaxed">{{ pretty(resp.text) || '(body kosong)' }}</pre>
+
+        <!-- response headers tab -->
+        <div v-else-if="inspectTab === 'headers'"
+          class="thin-scroll max-h-[280px] overflow-auto divide-y"
+          :style="{ borderColor: 'var(--color-line)' }">
+          <div v-for="(val, key) in resp.resHeaders" :key="key"
+            class="flex gap-2 px-3 py-1.5 text-[11px]">
+            <span class="w-[40%] shrink-0 font-medium text-[var(--color-accent)] truncate">{{ key }}</span>
+            <span class="min-w-0 flex-1 break-all text-mute">{{ val }}</span>
+          </div>
+          <div v-if="!Object.keys(resp.resHeaders).length"
+            class="px-3 py-6 text-center text-[11px] text-mute">Tidak ada header</div>
+        </div>
+
+        <!-- request headers tab -->
+        <div v-else
+          class="thin-scroll max-h-[280px] overflow-auto divide-y"
+          :style="{ borderColor: 'var(--color-line)' }">
+          <div v-for="(val, key) in resp.reqHeaders" :key="key"
+            class="flex gap-2 px-3 py-1.5 text-[11px]">
+            <span class="w-[40%] shrink-0 font-medium text-[var(--color-accent)] truncate">{{ key }}</span>
+            <span class="min-w-0 flex-1 break-all text-mute">{{ val }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
