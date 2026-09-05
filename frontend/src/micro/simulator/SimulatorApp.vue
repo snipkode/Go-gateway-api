@@ -112,17 +112,20 @@ function pretty(respText) {
 
     <p v-if="error" class="text-bad">{{ error }}</p>
 
+    <!-- ── API selector + meta ── -->
     <div class="mb-4 rounded-[18px] bg-panel p-4 shadow-sm">
       <label class="label-sm block pb-2">Registered API</label>
       <select v-model="selectedId" @change="onSelect"
-        class="w-full rounded-xl border bg-panel-2 px-3 py-2.5 text-[14px] focus:outline-none" :style="{ borderColor: 'var(--color-line)' }">
+        class="w-full rounded-xl border bg-panel-2 px-3 py-2.5 text-[14px] focus:outline-none"
+        :style="{ borderColor: 'var(--color-line)' }">
         <option v-for="a in apis" :key="a.id" :value="a.id">{{ a.name }} — {{ a.base_path }}</option>
       </select>
 
-      <div class="mt-3 grid grid-cols-2 gap-2 text-[12px]">
+      <!-- 2-col on sm+, 1-col on xs -->
+      <div class="mt-3 grid grid-cols-1 gap-2 text-[12px] min-[400px]:grid-cols-2">
         <div class="rounded-xl bg-panel-2 px-3 py-2">
           <div class="label-sm">Upstream</div>
-          <div class="truncate pt-0.5">{{ selected?.upstream }}</div>
+          <div class="break-all pt-0.5">{{ selected?.upstream }}</div>
         </div>
         <div class="rounded-xl bg-panel-2 px-3 py-2">
           <div class="label-sm">Protection</div>
@@ -130,7 +133,7 @@ function pretty(respText) {
         </div>
         <div class="rounded-xl bg-panel-2 px-3 py-2">
           <div class="label-sm">Methods</div>
-          <div class="truncate pt-0.5">{{ selected?.methods.join(', ') }}</div>
+          <div class="break-all pt-0.5">{{ selected?.methods.join(', ') }}</div>
         </div>
         <div class="rounded-xl bg-panel-2 px-3 py-2">
           <div class="label-sm">Rate / health</div>
@@ -138,7 +141,8 @@ function pretty(respText) {
         </div>
       </div>
 
-      <div class="mt-3 flex items-center gap-2">
+      <!-- stacked on mobile, side-by-side on sm+ -->
+      <div class="mt-3 flex flex-col gap-2 min-[400px]:flex-row">
         <button class="btn-ghost tappable flex-1" :disabled="previewing" @click="preview">
           {{ previewing ? 'Rendering…' : '↻ Preview config' }}
         </button>
@@ -150,57 +154,79 @@ function pretty(respText) {
 
     <!-- ── send a test request ── -->
     <div class="mb-4 rounded-[18px] bg-panel p-4 shadow-sm">
-      <div class="label-sm pb-2">Send a test request <span class="text-mute">(through the gateway → upstream {{ selected?.requires_auth ? '· with jwt' : '· open' }})</span></div>
+      <div class="label-sm pb-2">
+        Send a test request
+        <span class="text-mute">
+          (through the gateway → upstream {{ selected?.requires_auth ? '· with jwt' : '· open' }})
+        </span>
+      </div>
 
-      <div class="flex items-center gap-2">
-        <code class="shrink-0 rounded-lg bg-panel-2 px-2 py-1.5 text-[12px] text-accent">{{ selected?.base_path }}</code>
+      <!-- base_path badge stacked above the subpath input on very narrow screens -->
+      <div class="flex flex-col gap-1.5 min-[400px]:flex-row min-[400px]:items-center min-[400px]:gap-2">
+        <code class="inline-block shrink-0 rounded-lg bg-panel-2 px-2 py-1.5 text-[12px] text-accent leading-snug break-all">{{ selected?.base_path }}</code>
         <input v-model="subpath" type="text" placeholder="healthz"
-          class="w-full rounded-xl border bg-panel-2 px-3 py-2 text-[13px] focus:outline-none" :style="{ borderColor: 'var(--color-line)' }" />
+          class="w-full rounded-xl border bg-panel-2 px-3 py-2 text-[13px] focus:outline-none"
+          :style="{ borderColor: 'var(--color-line)' }" />
       </div>
 
-      <div class="seg mt-2.5">
-        <button v-for="m in selected?.methods || ['GET']" :key="m" type="button" :class="{ on: method === m }" @click="method = m">{{ m }}</button>
+      <!-- method seg: allow wrapping so many methods don't overflow -->
+      <div class="seg mt-2.5 flex-wrap">
+        <button v-for="m in selected?.methods || ['GET']" :key="m" type="button"
+          :class="{ on: method === m }" @click="method = m">{{ m }}</button>
       </div>
 
-      <textarea v-if="allMethodBody.includes(method)" v-model="bodyText" rows="2" placeholder='JSON body, e.g. {"name":"x"}'
-        class="mt-2 w-full rounded-xl border bg-panel-2 px-3 py-2 text-[12px] focus:outline-none" :style="{ borderColor: 'var(--color-line)' }"></textarea>
+      <textarea v-if="allMethodBody.includes(method)" v-model="bodyText" rows="3"
+        placeholder='JSON body, e.g. {"name":"x"}'
+        class="mt-2 w-full rounded-xl border bg-panel-2 px-3 py-2 text-[12px] focus:outline-none"
+        :style="{ borderColor: 'var(--color-line)' }"></textarea>
 
+      <!-- JWT toggle row + action buttons: wrap naturally, full-width on xs -->
       <div class="mt-2.5 flex flex-wrap items-center gap-2">
         <label class="flex items-center gap-2 text-[12px]">
           <input v-model="attachJwt" type="checkbox" class="accent-[#0071e3]" />
           Attach session JWT
         </label>
-        <span class="flex-1"></span>
-        <button class="btn-ghost tappable !py-2 text-[12px]" @click="grabToken">
-          {{ tokenCopied ? 'Copied ✓' : tokenText ? 'Get token (fresh)' : 'Get token' }}
+        <button class="btn-ghost tappable !py-2 text-[12px] ml-auto" @click="grabToken">
+          {{ tokenCopied ? 'Copied ✓' : tokenText ? 'Refresh token' : 'Get token' }}
         </button>
-        <button class="btn-primary tappable" :disabled="sending || !selectedId" @click="send">{{ sending ? 'Sending…' : '▶ Send' }}</button>
-      </div>
-      <div class="mt-2 flex items-center gap-2" :class="tokenText ? 'block' : 'hidden'">
-        <code class="thin-scroll block flex-1 overflow-x-auto whitespace-nowrap rounded-lg bg-panel-2 px-2.5 py-1.5 text-[11px] text-accent">{{ tokenText.slice(0, 28) }}…{{ tokenText.slice(-12) }}</code>
-        <span class="shrink-0 text-[10px] text-ok">JWT ready · copied</span>
+        <button class="btn-primary tappable w-full min-[400px]:w-auto"
+          :disabled="sending || !selectedId" @click="send">
+          {{ sending ? 'Sending…' : '▶ Send' }}
+        </button>
       </div>
 
+      <!-- JWT preview strip -->
+      <div v-if="tokenText" class="mt-2 flex items-center gap-2">
+        <code class="thin-scroll block min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-lg bg-panel-2 px-2.5 py-1.5 text-[11px] text-accent">{{ tokenText.slice(0, 28) }}…{{ tokenText.slice(-12) }}</code>
+        <span class="shrink-0 text-[10px] text-ok">JWT ready</span>
+      </div>
+
+      <!-- response panel -->
       <div v-if="resp" class="mt-3 overflow-hidden rounded-xl border" :style="{ borderColor: 'var(--color-line)' }">
-        <div class="flex items-center gap-2 border-b px-3 py-2 text-[11px]" :style="{ borderColor: 'var(--color-line)' }">
-          <span class="rounded-full px-2 py-0.5 font-bold" :class="resp.status === 0 ? 'bg-panel-2 text-mute' : resp.status < 400 ? 'bg-ok/10 text-ok' : 'bg-bad/10 text-bad'">
+        <!-- status bar: wrap on narrow screens -->
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1 border-b px-3 py-2 text-[11px]"
+          :style="{ borderColor: 'var(--color-line)' }">
+          <span class="rounded-full px-2 py-0.5 font-bold shrink-0"
+            :class="resp.status === 0 ? 'bg-panel-2 text-mute' : resp.status < 400 ? 'bg-ok/10 text-ok' : 'bg-bad/10 text-bad'">
             {{ resp.status || 'ERR' }}
           </span>
-          <span class="truncate text-mute">{{ resp.url }}</span>
-          <span class="ml-auto shrink-0 text-mute">{{ resp.ms }}ms · {{ resp.size }}B</span>
+          <span class="shrink-0 text-mute">{{ resp.ms }}ms · {{ resp.size }}B</span>
+          <span class="w-full truncate text-mute">{{ resp.url }}</span>
         </div>
-        <pre class="thin-scroll m-0 max-h-[320px] overflow-auto px-3 py-2.5 text-[11px] leading-relaxed">{{ pretty(resp.text) || '(empty body)' }}</pre>
+        <pre class="thin-scroll m-0 max-h-[280px] overflow-auto px-3 py-2.5 text-[11px] leading-relaxed">{{ pretty(resp.text) || '(empty body)' }}</pre>
       </div>
     </div>
 
     <!-- ── curl documentation ── -->
     <div class="overflow-hidden rounded-[18px] bg-panel shadow-sm">
       <div class="flex items-center gap-2 px-4 py-3">
-        <span class="h-2 w-2 rounded-full bg-ok"></span>
+        <span class="h-2 w-2 rounded-full bg-ok shrink-0"></span>
         <span class="text-[11px] text-mute">How to call this API from outside the console (curl)</span>
       </div>
-      <pre v-if="curlDoc" class="thin-scroll m-0 max-h-[260px] overflow-x-auto border-t bg-panel-2 px-4 py-3 text-[11px] leading-relaxed" :style="{ borderColor: 'var(--color-line)' }">{{ curlDoc }}</pre>
-      <div v-else class="border-t px-4 py-10 text-center text-mute" :style="{ borderColor: 'var(--color-line)' }">
+      <pre v-if="curlDoc" class="thin-scroll m-0 max-h-[260px] overflow-x-auto border-t bg-panel-2 px-4 py-3 text-[11px] leading-relaxed"
+        :style="{ borderColor: 'var(--color-line)' }">{{ curlDoc }}</pre>
+      <div v-else class="border-t px-4 py-10 text-center text-mute"
+        :style="{ borderColor: 'var(--color-line)' }">
         Select an API to see its curl example.
       </div>
     </div>
@@ -208,12 +234,13 @@ function pretty(respText) {
     <!-- ── generated config ── -->
     <div class="mt-4 overflow-hidden rounded-[18px] bg-panel shadow-sm">
       <div class="flex items-center gap-2 px-4 py-3">
-        <span class="h-2 w-2 rounded-full bg-ok"></span>
-        <span class="text-[11px] text-mute">Generated nginx · locations/reg_{{ selectedId }}.conf</span>
+        <span class="h-2 w-2 rounded-full bg-ok shrink-0"></span>
+        <span class="min-w-0 truncate text-[11px] text-mute">Generated nginx · locations/reg_{{ selectedId }}.conf</span>
       </div>
       <pre v-if="snippet" class="thin-scroll m-0 max-h-[360px] overflow-x-auto border-t px-4 py-3 text-[11px] leading-relaxed"
         :style="{ borderColor: 'var(--color-line)' }">{{ snippet }}</pre>
-      <div v-else class="border-t px-4 py-10 text-center text-mute" :style="{ borderColor: 'var(--color-line)' }">
+      <div v-else class="border-t px-4 py-10 text-center text-mute"
+        :style="{ borderColor: 'var(--color-line)' }">
         Select an API to preview its generated config.
       </div>
     </div>
