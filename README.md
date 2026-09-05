@@ -40,6 +40,7 @@ Registered upstreams (permitted base paths) ─┘  (JWT via auth_request · per
 | [docs/SWAGGER.md](docs/SWAGGER.md)     | Swagger UI, how to annotate handlers, regenerate docs, toggle in prod                 |
 | [docs/GATEWAY.md](docs/GATEWAY.md)     | Nginx gateway: rate limits, WAF-ish filters, headers, `X-Gateway-Token` handshake     |
 | [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md) | Every environment variable explained                                             |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)   | `make deploy` (Docker) and `make k8s-apply` (Kubernetes) walkthroughs, ops, troubleshooting |
 
 ---
 
@@ -95,8 +96,9 @@ make k8s-apply       # kubectl apply -k deployments/kubernetes  (NodePort 30080)
 make k8s-logs        # tail both containers
 ```
 
-OpenAPI, Entra, gateway/monitoring/console, and every environment variable are
-documented under [docs/](#documentation).
+OpenAPI, Entra, gateway/monitoring/console, deployment automation, and every
+environment variable are documented under [docs/](#documentation)
+([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) covers both deployment paths).
 
 ## Try it
 
