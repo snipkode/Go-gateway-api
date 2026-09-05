@@ -1,0 +1,1466 @@
+definitions:
+  go-enterprise-api_internal_application_auth.LoginResult:
+    properties:
+      access_token:
+        type: string
+      expires_at:
+        type: string
+      refresh_token:
+        type: string
+      user:
+        additionalProperties: {}
+        type: object
+    type: object
+  go-enterprise-api_internal_domain_audit.Entry:
+    properties:
+      action:
+        type: string
+      created_at:
+        type: string
+      ip_address:
+        type: string
+      metadata:
+        additionalProperties: {}
+        type: object
+      method:
+        type: string
+      new_data:
+        additionalProperties: {}
+        type: object
+      old_data:
+        additionalProperties: {}
+        type: object
+      path:
+        type: string
+      request_id:
+        type: string
+      resource:
+        type: string
+      resource_id:
+        type: string
+      user_agent:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  go-enterprise-api_internal_domain_gatewayapi.GatewayAPI:
+    properties:
+      base_path:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      is_active:
+        type: boolean
+      last_checked_at:
+        type: string
+      methods:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      note:
+        type: string
+      rate_limit_rpm:
+        type: integer
+      requires_auth:
+        type: boolean
+      status:
+        type: string
+      updated_at:
+        type: string
+      upstream:
+        type: string
+    type: object
+  go-enterprise-api_internal_domain_permission.Permission:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  go-enterprise-api_internal_domain_ratelimit.Rule:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      enabled:
+        type: boolean
+      id:
+        type: integer
+      identifier:
+        type: string
+      name:
+        type: string
+      priority:
+        type: integer
+      requests:
+        type: integer
+      scope:
+        type: string
+      updated_at:
+        type: string
+      window_seconds:
+        type: integer
+    type: object
+  go-enterprise-api_internal_domain_role.Role:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      slug:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  go-enterprise-api_internal_domain_user.User:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      provider:
+        type: string
+      provider_id:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  go-enterprise-api_internal_infrastructure_gatewaymonitor.Entry:
+    properties:
+      bytes:
+        type: integer
+      ip:
+        type: string
+      method:
+        type: string
+      rt:
+        type: number
+      status:
+        type: integer
+      time:
+        type: string
+      ua:
+        type: string
+      upstream:
+        type: string
+      uri:
+        type: string
+    type: object
+  go-enterprise-api_internal_infrastructure_gatewaymonitor.TodayStats:
+    properties:
+      2xx:
+        type: integer
+      4xx:
+        type: integer
+      5xx:
+        type: integer
+      count:
+        type: integer
+      errors:
+        type: integer
+      latency_ms:
+        type: integer
+    type: object
+  go-enterprise-api_internal_interface_httpapi.ErrorBody:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  go-enterprise-api_internal_interface_httpapi.ErrorResponse:
+    properties:
+      error:
+        $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorBody'
+    type: object
+  internal_interface_http_handler.assignPermissionRequest:
+    properties:
+      permission_id:
+        type: integer
+    type: object
+  internal_interface_http_handler.createGatewayAPIRequest:
+    properties:
+      base_path:
+        type: string
+      is_active:
+        type: boolean
+      methods:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      note:
+        type: string
+      rate_limit_rpm:
+        type: integer
+      requires_auth:
+        type: boolean
+      upstream:
+        type: string
+    type: object
+  internal_interface_http_handler.createUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    type: object
+  internal_interface_http_handler.gatewayStatsResponse:
+    properties:
+      recent:
+        items:
+          $ref: '#/definitions/go-enterprise-api_internal_infrastructure_gatewaymonitor.Entry'
+        type: array
+      today:
+        $ref: '#/definitions/go-enterprise-api_internal_infrastructure_gatewaymonitor.TodayStats'
+    type: object
+  internal_interface_http_handler.loginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  internal_interface_http_handler.permissionRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  internal_interface_http_handler.roleRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+    type: object
+  internal_interface_http_handler.ruleRequest:
+    properties:
+      enabled:
+        type: boolean
+      identifier:
+        type: string
+      name:
+        type: string
+      priority:
+        type: integer
+      requests:
+        type: integer
+      scope:
+        type: string
+      window_seconds:
+        type: integer
+    type: object
+  internal_interface_http_handler.updateGatewayAPIRequest:
+    properties:
+      base_path:
+        type: string
+      is_active:
+        type: boolean
+      methods:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      note:
+        type: string
+      rate_limit_rpm:
+        type: integer
+      requires_auth:
+        type: boolean
+      upstream:
+        type: string
+    type: object
+  internal_interface_http_handler.updateUserRequest:
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:18080
+info:
+  contact:
+    name: GitOps
+  description: 'Enterprise boilerplate: Dynamic Rate Limit, Soft Delete, Audit Logs,
+    RBAC, JWT + Redis sessions, Microsoft Entra (OIDC). All requests pass through
+    the Nginx gateway (X-Gateway-Token handshake) — public endpoints are also rate-limited
+    per IP at the gateway.'
+  title: Go Enterprise API
+  version: "1.0"
+paths:
+  /api/v1/audit-logs:
+    get:
+      description: 'Paginated, filterable trail of WHO/WHAT/DATA/WHEN/FROM. Filters:
+        user_id, action, resource, resource_id, request_id.'
+      parameters:
+      - description: Filter by user
+        in: query
+        name: user_id
+        type: integer
+      - description: Filter by action (LOGIN, USER_CREATED, …)
+        in: query
+        name: action
+        type: string
+      - description: Filter by resource (users, roles, …)
+        in: query
+        name: resource
+        type: string
+      - description: Filter by resource id
+        in: query
+        name: resource_id
+        type: string
+      - description: Filter by request id
+        in: query
+        name: request_id
+        type: string
+      - description: Page number (default 1)
+        in: query
+        name: page
+        type: integer
+      - description: Page size (default 20)
+        in: query
+        name: page_size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-enterprise-api_internal_domain_audit.Entry'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Search audit logs
+      tags:
+      - audit
+    post:
+      consumes:
+      - application/json
+      description: Records a raw audit entry. The authenticated principal, request
+        id, method and path are attached automatically.
+      parameters:
+      - description: Audit entry
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/go-enterprise-api_internal_domain_audit.Entry'
+      responses:
+        "204":
+          description: No Content
+      security:
+      - BearerAuth: []
+      summary: Write a manual audit entry
+      tags:
+      - audit
+  /api/v1/auth/entra/callback:
+    get:
+      description: Exchanges the authorization code for a verified profile, JIT-provisions
+        the user with the default role and issues a session. Returns the standard
+        LoginResult JSON (or a fragment redirect when OAUTH_FRONTEND_URL is set).
+      parameters:
+      - description: Authorization code from Microsoft
+        in: query
+        name: code
+        required: true
+        type: string
+      - description: CSRF state returned from /entra/login
+        in: query
+        name: state
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_application_auth.LoginResult'
+        "400":
+          description: missing/invalid code or state
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "502":
+          description: exchange with Microsoft failed
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      summary: Entra OIDC callback
+      tags:
+      - auth
+  /api/v1/auth/entra/login:
+    get:
+      description: Issues a CSRF state and 302-redirects the browser to Microsoft.
+        Unconfigured when OAUTH_CLIENT_ID/OAUTH_TENANT_ID are empty → 503 so the SPA
+        can fall back to the local form.
+      responses:
+        "302":
+          description: Redirect to login.microsoftonline.com
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      summary: Start Microsoft Entra (OIDC) login
+      tags:
+      - auth
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates with the local provider and returns a JWT access
+        token. Route-limited by the dynamic rule POST:/api/v1/auth/login (10 req/min
+        by default).
+      parameters:
+      - description: Credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.loginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_application_auth.LoginResult'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      summary: Login with email/password
+      tags:
+      - auth
+  /api/v1/auth/logout:
+    post:
+      description: Revokes the Redis session, invalidating the JWT immediately.
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Logout / revoke session
+      tags:
+      - auth
+  /api/v1/auth/me:
+    get:
+      description: Returns the authenticated user with their effective roles.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Current user profile
+      tags:
+      - auth
+  /api/v1/gateway/apis:
+    get:
+      description: Returns all registered APIs managed by the gateway console, with
+        live health status.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-enterprise-api_internal_domain_gatewayapi.GatewayAPI'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List registered gateway APIs
+      tags:
+      - gateway
+    post:
+      consumes:
+      - application/json
+      description: Registers an upstream API and publishes it to the gateway (nginx
+        include + hot reload) immediately. base_path must be a single segment like
+        /orders; upstream is the origin url. Methods default to GET, rate_limit_rpm
+        to 60, requires_auth to true.
+      parameters:
+      - description: API to register
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.createGatewayAPIRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_gatewayapi.GatewayAPI'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "409":
+          description: base path already in use
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Register a gateway API
+      tags:
+      - gateway
+  /api/v1/gateway/apis/{id}:
+    delete:
+      description: Removes the API from the gateway (generated nginx config is dropped).
+      parameters:
+      - description: Gateway API ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Soft delete a registered gateway API
+      tags:
+      - gateway
+    get:
+      parameters:
+      - description: Gateway API ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_gatewayapi.GatewayAPI'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get one registered gateway API
+      tags:
+      - gateway
+    put:
+      consumes:
+      - application/json
+      description: Updates fields and re-publishes the gateway config. Audited (old
+        → new data).
+      parameters:
+      - description: Gateway API ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.updateGatewayAPIRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_gatewayapi.GatewayAPI'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a registered gateway API
+      tags:
+      - gateway
+  /api/v1/gateway/apis/{id}/preview:
+    get:
+      description: Simulates the exact nginx location block the gateway would apply.
+      parameters:
+      - description: Gateway API ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: generated nginx snippet
+          schema:
+            type: string
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Preview generated nginx config (no publish)
+      tags:
+      - gateway
+  /api/v1/gateway/apis/{id}/restore:
+    post:
+      description: Re-registers the API and re-publishes the gateway config.
+      parameters:
+      - description: Gateway API ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore a soft-deleted gateway API
+      tags:
+      - gateway
+  /api/v1/gateway/apis/{id}/stats:
+    get:
+      description: Today's totals (Redis) plus the most recent proxied requests (in-memory
+        ring) for one registered API.
+      parameters:
+      - description: Gateway API ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_interface_http_handler.gatewayStatsResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Gateway API statistics
+      tags:
+      - gateway
+  /api/v1/gateway/publish:
+    post:
+      description: Regenerates every nginx include and triggers the gateway hot-reload.
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Re-publish the full registry to the gateway
+      tags:
+      - gateway
+  /api/v1/permissions:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-enterprise-api_internal_domain_permission.Permission'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List permissions
+      tags:
+      - permissions
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Permission
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.permissionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_permission.Permission'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create permission
+      tags:
+      - permissions
+  /api/v1/permissions/{id}:
+    delete:
+      parameters:
+      - description: Permission ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Soft delete permission
+      tags:
+      - permissions
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Permission ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Permission
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.permissionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_permission.Permission'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update permission
+      tags:
+      - permissions
+  /api/v1/permissions/{id}/restore:
+    post:
+      parameters:
+      - description: Permission ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore soft-deleted permission
+      tags:
+      - permissions
+  /api/v1/rate-limits:
+    get:
+      description: Dynamic rules stored in PostgreSQL. Changes apply live within the
+        Redis cache TTL (30s).
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-enterprise-api_internal_domain_ratelimit.Rule'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List rate limit rules
+      tags:
+      - rate-limits
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Rule
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.ruleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_ratelimit.Rule'
+      security:
+      - BearerAuth: []
+      summary: Create rate limit rule
+      tags:
+      - rate-limits
+  /api/v1/rate-limits/{id}:
+    delete:
+      description: Disables the rule.
+      parameters:
+      - description: Rule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Soft delete rate limit rule
+      tags:
+      - rate-limits
+    put:
+      consumes:
+      - application/json
+      description: 'Example: raise the Viewer role from 500 to 1000 req/min without
+        redeploying. Audited old → new.'
+      parameters:
+      - description: Rule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Rule
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.ruleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_ratelimit.Rule'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update rate limit rule
+      tags:
+      - rate-limits
+  /api/v1/rate-limits/{id}/restore:
+    post:
+      parameters:
+      - description: Rule ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore soft-deleted rate limit rule
+      tags:
+      - rate-limits
+  /api/v1/roles:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-enterprise-api_internal_domain_role.Role'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List roles
+      tags:
+      - roles
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Role
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.roleRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_role.Role'
+        "409":
+          description: slug already in use
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create role
+      tags:
+      - roles
+  /api/v1/roles/{id}:
+    delete:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Soft delete role
+      tags:
+      - roles
+    get:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_role.Role'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get role
+      tags:
+      - roles
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Role
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.roleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_role.Role'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update role
+      tags:
+      - roles
+  /api/v1/roles/{id}/permissions:
+    post:
+      consumes:
+      - application/json
+      description: Links a permission to a role. Audited as PERMISSION_GRANTED.
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Permission to grant
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.assignPermissionRequest'
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Grant permission to role
+      tags:
+      - roles
+  /api/v1/roles/{id}/permissions/{permissionId}:
+    delete:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Permission ID
+        in: path
+        name: permissionId
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Revoke permission from role
+      tags:
+      - roles
+  /api/v1/roles/{id}/restore:
+    post:
+      parameters:
+      - description: Role ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore soft-deleted role
+      tags:
+      - roles
+  /api/v1/users:
+    get:
+      description: Returns all active (non soft-deleted) users. Audited resource;
+        RBAC protected.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/go-enterprise-api_internal_domain_user.User'
+            type: array
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Creates a local-provider user. The password is bcrypt-hashed in
+        the application layer. Will not accept unknown JSON fields.
+      parameters:
+      - description: User to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.createUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_user.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "409":
+          description: email already in use
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create user
+      tags:
+      - users
+  /api/v1/users/{id}:
+    delete:
+      description: Soft delete (sets deleted_at). The email becomes reusable thanks
+        to the partial unique index.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Soft delete user
+      tags:
+      - users
+    get:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_user.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Updates name and/or status. Audited (old → new data) inside the
+        same transaction.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/internal_interface_http_handler.updateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_domain_user.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user
+      tags:
+      - users
+  /api/v1/users/{id}/restore:
+    post:
+      description: Clears deleted_at. Audited.
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Restore soft-deleted user
+      tags:
+      - users
+  /healthz:
+    get:
+      description: Returns 200 while the process is up. Used by the container healthcheck
+        and load balancers.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Liveness probe
+      tags:
+      - system
+  /readyz:
+    get:
+      description: Returns 200 when Postgres and Redis are reachable, otherwise 503.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "503":
+          description: Service Unavailable
+          schema:
+            $ref: '#/definitions/go-enterprise-api_internal_interface_httpapi.ErrorResponse'
+      summary: Readiness probe
+      tags:
+      - system
+schemes:
+- http
+- https
+securityDefinitions:
+  BearerAuth:
+    description: Provide a JWT access token obtained from /api/v1/auth/login or the
+      Entra OIDC flow as "Bearer <token>".
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

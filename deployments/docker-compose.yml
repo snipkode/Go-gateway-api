@@ -1,0 +1,116 @@
+name: go-enterprise-api
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: go-enterprise-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: go_enterprise
+    ports:
+      - "15432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d go_enterprise"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: go-enterprise-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "16379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: go-enterprise-api
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      POSTGRES_HOST: postgres
+      REDIS_HOST: redis
+      APP_MIGRATIONS_PATH: /app/migrations
+      # Entra SSO: point at the bundled local mock IdP so the flow works out
+      # of the box. Set OAUTH_ISSUER to a real tenant (Microsoft) or leave
+      # empty with OAUTH_TENANT_ID set for production:
+      #   OAUTH_ISSUER=https://login.microsoftonline.com/<tenant>/v2.0
+      OAUTH_ISSUER: http://mock-idp:9090
+      OAUTH_CLIENT_ID: mock-client
+      OAUTH_CLIENT_SECRET: mock-secret
+      OAUTH_TENANT_ID: mock-tenant
+      OAUTH_DEFAULT_ROLE: viewer
+      GATEWAY_CONFIG_DIR: /app/gateway-configs
+      GATEWAY_AUTH_UPSTREAM: http://api:8080
+    # No host port: the API is only reachable through the gateway.
+    expose:
+      - "8080"
+    # Shared registry volume: the API publishes generated nginx configs and
+    # reads the per-API access logs that nginx writes here.
+    volumes:
+      - gwregistry:/app/gateway-configs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mock-idp:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  mock-idp:
+    build:
+      context: ./mock-idp
+      dockerfile: Dockerfile
+    container_name: go-enterprise-mock-idp
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:9090/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    image: nginx:1.27-alpine
+    container_name: go-enterprise-gateway
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    ports:
+      - "18080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/entrypoint.sh:/entrypoint.sh:ro
+      - gwregistry:/etc/nginx/registry
+      # Vue.js management console (built dist from the frontend/ app).
+      - ../frontend/dist:/usr/share/nginx/html:ro
+    entrypoint: ["/bin/sh", "/entrypoint.sh"]
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:
+  gwregistry:

@@ -1,0 +1,10 @@
+.env
+.env.local
+bin/
+*.log
+node_modules/
+frontend/dist/
+dist/
+*.key
+*.pem
+.DS_Store
