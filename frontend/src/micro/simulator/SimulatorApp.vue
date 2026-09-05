@@ -25,6 +25,17 @@ const filteredApis = computed(() => {
   )
 })
 
+// group: apis with /api/v1 prefix = "System", rest = "Custom"
+const groupedApis = computed(() => {
+  const list = filteredApis.value
+  const system = list.filter((a) => a.base_path.startsWith('/api/'))
+  const custom = list.filter((a) => !a.base_path.startsWith('/api/'))
+  return [
+    ...(system.length ? [{ type: 'header', label: 'System API' }, ...system] : []),
+    ...(custom.length ? [{ type: 'header', label: 'Custom API' }, ...custom] : []),
+  ]
+})
+
 function pickApi(id) {
   selectedId.value = String(id)
   dropOpen.value = false
@@ -248,39 +259,42 @@ function pretty(respText) {
               <li v-if="filteredApis.length === 0" class="px-4 py-6 text-center text-[12px] text-mute">
                 Tidak ada hasil
               </li>
-              <li
-                v-for="a in filteredApis"
-                :key="a.id"
-                class="tappable group flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors hover:bg-panel-2"
-                :class="{ 'bg-[var(--color-accent-tint)]': String(a.id) === String(selectedId) }"
-                @click="pickApi(a.id)"
-              >
-                <!-- check mark -->
-                <span class="mt-0.5 w-4 shrink-0 text-[var(--color-accent)]">
-                  <svg v-if="String(a.id) === String(selectedId)" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                    <path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </span>
-
-                <div class="min-w-0 flex-1">
-                  <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                    <span class="text-[13px] font-medium">{{ a.name }}</span>
-                    <!-- method badges -->
-                    <span
-                      v-for="m in (a.methods || []).slice(0, 3)"
-                      :key="m"
-                      class="rounded-full px-1.5 py-0.5 text-[10px] font-bold"
-                      :class="methodColor(m)"
-                    >{{ m }}</span>
+              <template v-for="item in groupedApis" :key="item.type === 'header' ? 'h-' + item.label : item.id">
+                <!-- section header -->
+                <li v-if="item.type === 'header'"
+                  class="flex items-center gap-2 px-3 pb-1 pt-2.5 first:pt-1">
+                  <span class="label-sm">{{ item.label }}</span>
+                  <span class="h-px flex-1 bg-[var(--color-line)]"></span>
+                </li>
+                <!-- api item -->
+                <li v-else
+                  class="tappable group flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors hover:bg-panel-2"
+                  :class="{ 'bg-[var(--color-accent-tint)]': String(item.id) === String(selectedId) }"
+                  @click="pickApi(item.id)"
+                >
+                  <span class="mt-0.5 w-4 shrink-0 text-[var(--color-accent)]">
+                    <svg v-if="String(item.id) === String(selectedId)" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                      <path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <span class="text-[13px] font-medium">{{ item.name }}</span>
+                      <span
+                        v-for="m in (item.methods || []).slice(0, 3)" :key="m"
+                        class="rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+                        :class="methodColor(m)"
+                      >{{ m }}</span>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] text-mute">
+                      <code class="text-accent">{{ item.base_path }}</code>
+                      <span v-if="item.requires_auth" class="text-[#0071e3]">· JWT</span>
+                      <span v-else class="text-ok">· open</span>
+                      <span class="ml-auto shrink-0">{{ item.rate_limit_rpm }}r/m</span>
+                    </div>
                   </div>
-                  <div class="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] text-mute">
-                    <code class="text-accent">{{ a.base_path }}</code>
-                    <span v-if="a.requires_auth" class="text-[#0071e3]">· JWT</span>
-                    <span v-else class="text-ok">· open</span>
-                    <span class="ml-auto shrink-0">{{ a.rate_limit_rpm }}r/m</span>
-                  </div>
-                </div>
-              </li>
+                </li>
+              </template>
             </ul>
 
             <!-- footer count -->
