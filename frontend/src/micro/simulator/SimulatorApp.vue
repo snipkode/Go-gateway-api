@@ -191,11 +191,25 @@ const curlLive = computed(() => {
 // legacy full doc (with token acquisition step)
 const curlDoc = computed(() => {
   if (!selected.value) return ''
-  const needsToken = selected.value.requires_auth
-  const tokenBlock = needsToken
-    ? `# 1) ambil token\nTOKEN=$(curl -s -X POST ${window.location.origin}/api/v1/auth/login \\\n  -H "Content-Type: application/json" \\\n  -d '{"email":"admin@example.com","password":"admin123"}' | jq -r .data.access_token)\n\n# 2) panggil API\n`
+  const path = buildCurlPath()
+  const methodFlag = method.value !== 'GET' ? ` -X ${method.value}` : ''
+  const jwtHeader = attachJwt.value ? `\n  -H "Authorization: Bearer $TOKEN"` : ''
+  const ctHeader = allMethodBody.includes(method.value) ? `\n  -H "Content-Type: application/json"` : ''
+  const body = allMethodBody.includes(method.value) && bodyText.value
+    ? `\n  -d '${bodyText.value.replace(/'/g, `'\\''`)}'`
     : ''
-  return tokenBlock + curlLive.value
+
+  return `# Ganti GATEWAY_URL dengan URL gateway kamu
+GATEWAY_URL="https://your-gateway"
+
+# Ambil token
+TOKEN=$(curl -s -X POST "$GATEWAY_URL/api/v1/auth/login" \\
+  -H "Content-Type: application/json" \\
+  -d '{"email":"admin@example.com","password":"admin123"}' \\
+  | jq -r .data.access_token)
+
+# Kirim request
+curl -s${methodFlag} "$GATEWAY_URL${path}"${jwtHeader}${ctHeader}${body}`
 })
 
 function copyCurl() {
