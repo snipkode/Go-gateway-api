@@ -146,7 +146,20 @@ function rowLabel(a) {
         </div>
       </div>
 
-      <div v-else-if="apis.length" class="flex flex-col gap-2">
+      <!-- empty state -->
+      <div v-else-if="!apis.length" class="rounded-[18px] bg-panel py-14 text-center shadow-sm">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-panel-2">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" class="text-mute">
+            <rect x="3" y="3" width="18" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M3 9h18M9 9v12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <p class="mb-0.5 text-[15px] font-semibold">Belum ada API terdaftar</p>
+        <p class="mb-5 text-[13px] text-mute">Gateway hanya mengekspos API yang ada di registry ini.</p>
+        <button class="btn-primary tappable" @click="newForm">+ Register API pertama</button>
+      </div>
+
+      <div v-else class="flex flex-col gap-2">
         <div v-for="a in pagedApis" :key="a.id" class="rounded-[18px] bg-panel shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <button class="inset-cell tappable w-full text-left" style="border-radius: 18px; border-bottom: 1px solid transparent" @click="openEdit(a.id)">
             <div class="min-w-0">
@@ -188,11 +201,6 @@ function rowLabel(a) {
           :disabled="page >= totalPages" @click="page++">
           <svg width="17" height="17" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" d="M9 6l6 6-6 6"/></svg>
         </button>
-      </div>
-
-      <div v-else-if="!loading && !error && !apis.length" class="rounded-[18px] bg-panel py-12 text-center shadow-sm">
-        <p class="mt-0 mb-3 text-mute">The gateway only exposes what's in this list.</p>
-        <button class="btn-primary tappable" @click="newForm">Register your first API</button>
       </div>
     </div>
 
