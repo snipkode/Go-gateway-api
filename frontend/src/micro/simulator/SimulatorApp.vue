@@ -7,8 +7,6 @@ const props = defineProps({ init: { type: String, default: '' } })
 
 const apis = ref([])
 const selectedId = ref(props.init || '')
-const snippet = ref('')
-const previewing = ref(false)
 const publishing = ref(false)
 const error = ref('')
 
@@ -66,7 +64,7 @@ onMounted(async () => {
   try {
     apis.value = await api.listApis()
     if (!selectedId.value) selectedId.value = String(apis.value[0]?.id || '')
-    if (selectedId.value) { preview(); autoSend() }
+    if (selectedId.value) { autoSend() }
   } catch (e) {
     error.value = e.message
   }
@@ -100,19 +98,6 @@ function grabToken() {
   show(tokenText.value ? 'Session token copied to clipboard' : 'No session — sign in first')
 }
 
-async function preview() {
-  if (!selectedId.value) return
-  previewing.value = true
-  try {
-    const data = await api.previewApi(selectedId.value)
-    snippet.value = data?.config ?? data ?? ''
-  } catch (e) {
-    show('Preview failed: ' + e.message)
-  } finally {
-    previewing.value = false
-  }
-}
-
 async function publish() {
   publishing.value = true
   try {
@@ -126,7 +111,6 @@ async function publish() {
 }
 
 function onSelect() {
-  preview()
   autoSend()
 }
 
@@ -318,9 +302,6 @@ function pretty(respText) {
       </div>
 
       <div class="mt-3 flex flex-col gap-2 min-[400px]:flex-row">
-        <button class="btn-ghost tappable flex-1" :disabled="previewing" @click="preview">
-          {{ previewing ? 'Rendering…' : '↻ Preview config' }}
-        </button>
         <button class="btn-primary tappable flex-1" :disabled="publishing" @click="publish">
           {{ publishing ? 'Publishing…' : 'Apply & reload' }}
         </button>
@@ -416,18 +397,5 @@ function pretty(respText) {
       </div>
     </div>
 
-    <!-- ── generated config ── -->
-    <div class="mt-4 overflow-hidden rounded-[18px] bg-panel shadow-sm">
-      <div class="flex items-center gap-2 px-4 py-3">
-        <span class="h-2 w-2 rounded-full bg-ok shrink-0"></span>
-        <span class="min-w-0 truncate text-[11px] text-mute">Generated nginx · locations/reg_{{ selectedId }}.conf</span>
-      </div>
-      <pre v-if="snippet" class="thin-scroll m-0 max-h-[360px] overflow-x-auto border-t px-4 py-3 text-[11px] leading-relaxed"
-        :style="{ borderColor: 'var(--color-line)' }">{{ snippet }}</pre>
-      <div v-else class="border-t px-4 py-10 text-center text-mute"
-        :style="{ borderColor: 'var(--color-line)' }">
-        Select an API to preview its generated config.
-      </div>
-    </div>
   </div>
 </template>
