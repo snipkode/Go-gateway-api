@@ -288,22 +288,22 @@ function pretty(respText) {
           <div class="break-all pt-0.5">{{ selected?.upstream }}</div>
         </div>
         <div class="rounded-xl bg-panel-2 px-3 py-2">
-          <div class="label-sm">Protection</div>
-          <div class="pt-0.5">{{ selected?.requires_auth ? 'JWT · auth_request' : 'open' }}</div>
+          <div class="label-sm">Proteksi</div>
+          <div class="pt-0.5">{{ selected?.requires_auth ? 'JWT · auth_request' : 'Terbuka' }}</div>
         </div>
         <div class="rounded-xl bg-panel-2 px-3 py-2">
           <div class="label-sm">Methods</div>
           <div class="break-all pt-0.5">{{ selected?.methods.join(', ') }}</div>
         </div>
         <div class="rounded-xl bg-panel-2 px-3 py-2">
-          <div class="label-sm">Rate / health</div>
+          <div class="label-sm">Rate / Status</div>
           <div class="pt-0.5">{{ selected?.rate_limit_rpm }}r/m · {{ selected?.status }}</div>
         </div>
       </div>
 
       <div class="mt-3 flex flex-col gap-2 min-[400px]:flex-row">
         <button class="btn-primary tappable flex-1" :disabled="publishing" @click="publish">
-          {{ publishing ? 'Publishing…' : 'Apply & reload' }}
+          {{ publishing ? 'Menerbitkan…' : 'Terapkan & reload' }}
         </button>
       </div>
     </div>
@@ -311,9 +311,9 @@ function pretty(respText) {
     <!-- ── send a test request ── -->
     <div class="mb-4 rounded-[18px] bg-panel p-4 shadow-sm">
       <div class="label-sm pb-2">
-        Send a test request
+        Kirim request
         <span class="text-mute">
-          (through the gateway → upstream {{ selected?.requires_auth ? '· with jwt' : '· open' }})
+          {{ selected?.requires_auth ? '· perlu JWT' : '· tanpa autentikasi' }}
         </span>
       </div>
 
@@ -337,14 +337,14 @@ function pretty(respText) {
       <div class="mt-2.5 flex flex-wrap items-center gap-2">
         <label class="flex items-center gap-2 text-[12px]">
           <input v-model="attachJwt" type="checkbox" class="accent-[#0071e3]" />
-          Attach session JWT
+          Sertakan JWT
         </label>
         <button class="btn-ghost tappable !py-2 text-[12px] ml-auto" @click="grabToken">
-          {{ tokenCopied ? 'Copied ✓' : tokenText ? 'Refresh token' : 'Get token' }}
+          {{ tokenCopied ? 'Tersalin ✓' : tokenText ? 'Perbarui token' : 'Ambil token' }}
         </button>
         <button class="btn-primary tappable w-full min-[400px]:w-auto"
           :disabled="sending || !selectedId" @click="send">
-          {{ sending ? 'Sending…' : '▶ Send' }}
+          {{ sending ? 'Mengirim…' : '▶ Kirim' }}
         </button>
       </div>
 
@@ -379,7 +379,7 @@ function pretty(respText) {
           <span class="shrink-0 text-mute">{{ resp.ms }}ms · {{ resp.size }}B</span>
           <span class="w-full truncate text-mute">{{ resp.url }}</span>
         </div>
-        <pre class="thin-scroll m-0 max-h-[280px] overflow-auto px-3 py-2.5 text-[11px] leading-relaxed">{{ pretty(resp.text) || '(empty body)' }}</pre>
+        <pre class="thin-scroll m-0 max-h-[280px] overflow-auto px-3 py-2.5 text-[11px] leading-relaxed">{{ pretty(resp.text) || '(body kosong)' }}</pre>
       </div>
     </div>
 
@@ -387,13 +387,13 @@ function pretty(respText) {
     <div class="overflow-hidden rounded-[18px] bg-panel shadow-sm">
       <div class="flex items-center gap-2 px-4 py-3">
         <span class="h-2 w-2 rounded-full bg-ok shrink-0"></span>
-        <span class="text-[11px] text-mute">How to call this API from outside the console (curl)</span>
+        <span class="text-[11px] text-mute">Contoh curl untuk API ini</span>
       </div>
       <pre v-if="curlDoc" class="thin-scroll m-0 max-h-[260px] overflow-x-auto border-t bg-panel-2 px-4 py-3 text-[11px] leading-relaxed"
         :style="{ borderColor: 'var(--color-line)' }">{{ curlDoc }}</pre>
       <div v-else class="border-t px-4 py-10 text-center text-mute"
         :style="{ borderColor: 'var(--color-line)' }">
-        Select an API to see its curl example.
+        Pilih API untuk melihat contoh curl.
       </div>
     </div>
 
