@@ -95,7 +95,7 @@ function logout() {
         </button>
       </header>
 
-      <main class="mx-auto w-full max-w-3xl px-4 pb-6 pt-4 md:max-w-none md:px-8 md:py-7">
+      <main class="mx-auto w-full max-w-3xl px-3.5 pb-24 pt-3.5 sm:px-4 md:max-w-none md:px-8 md:pb-7 md:py-7">
         <RouterView />
       </main>
 

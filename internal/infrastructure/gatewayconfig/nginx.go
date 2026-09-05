@@ -69,7 +69,6 @@ func (r *Renderer) RenderLocation(api gatewayapi.GatewayAPI) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 	var b strings.Builder
 	fmt.Fprintf(&b, "# reg_%d — %s (%s → %s)\n#   auth=%v rate=%dr/m methods=%s\n",
 		api.ID, api.Name, api.BasePath, api.Upstream, api.RequiresAuth, api.RateLimitRPM, strings.Join(api.Methods, "|"))
@@ -102,13 +101,22 @@ location ^~ %s/ {
 		fmt.Fprintf(&b, "    if ($request_method !~ ^(%s)$) { return 405; }\n", methods)
 	}
 
-	fmt.Fprintf(&b, `
-    rewrite ^%s$ / break;
-    rewrite ^%s(/.*)$ $1 break;
-    proxy_pass %s;
-    access_log %s %s;
-}
-`, api.BasePath, api.BasePath, origin, r.logFile(api.ID), gatewayJSONLogFormat)
+	// proxy_pass goes through a $regN_upstream variable so the resolver below
+	// does runtime DNS (docker bridge) and skips IPv6 (host bridge usually has
+	// no IPv6 route). CDN-hosted https upstreams need SNI enabled.
+	resolverLine := "    resolver 127.0.0.11 ipv6=off valid=30s;\n"
+	setLine := fmt.Sprintf("    set $reg%d_upstream %s;\n", api.ID, origin)
+	sniLine := ""
+	if strings.HasPrefix(origin, "https://") {
+		sniLine = "    proxy_ssl_server_name on;\n"
+	}
+	rewriteRoot := fmt.Sprintf("    rewrite ^%s$ / break;\n", api.BasePath)
+	rewriteSub := fmt.Sprintf("    rewrite ^%s(/.*)$ $1 break;\n", api.BasePath)
+	proxyVarLine := fmt.Sprintf("    proxy_pass $reg%d_upstream;\n", api.ID)
+	accessLogLine := fmt.Sprintf("    access_log %s %s;\n", r.logFile(api.ID), gatewayJSONLogFormat)
+
+	fmt.Fprintf(&b, "\n%s%s%s%s%s%s%s}\n",
+		resolverLine, setLine, sniLine, rewriteRoot, rewriteSub, proxyVarLine, accessLogLine)
 
 	return b.String(), nil
 }

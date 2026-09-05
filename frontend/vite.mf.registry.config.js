@@ -11,6 +11,12 @@ export default defineConfig({
     outDir: 'dist/mf/registry',
     emptyOutDir: true,
     cssCodeSplit: false,
+    rollupOptions: {
+      // Share the single Vue runtime from the shell (see vite.config.js /
+      // index.html importmap). Externalising avoids a second Vue copy inside
+      // each micro bundle, so reactive updates re-render across the console.
+      external: ['vue']
+    },
     lib: {
       entry: 'src/micro/registry/main.js',
       formats: ['es'],

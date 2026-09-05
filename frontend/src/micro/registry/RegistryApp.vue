@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
 import { api } from '../../lib/api.js'
 import { show } from '../../lib/toast.js'
 
@@ -8,6 +8,16 @@ const props = defineProps({ init: { type: String, default: '' } })
 const apis = ref([])
 const loading = ref(true)
 const error = ref('')
+
+const perPage = ref(5)
+const mobile = ref(window.innerWidth < 640)
+function onResize() { mobile.value = window.innerWidth < 640; perPage.value = mobile.value ? 3 : 5 }
+onMounted(() => window.addEventListener('resize', onResize))
+onUnmounted(() => window.removeEventListener('resize', onResize))
+const page = ref(1)
+const totalPages = computed(() => Math.max(1, Math.ceil(apis.value.length / perPage)))
+watch(totalPages, (tp) => { if (page.value > tp) page.value = tp })
+const pagedApis = computed(() => apis.value.slice((page.value - 1) * perPage, page.value * perPage))
 
 const mode = ref(props.init ? 'edit' : 'list')
 const editId = ref(props.init ? Number(props.init) : null)
@@ -50,6 +60,7 @@ function back() {
 }
 
 async function load() {
+  page.value = 1
   try {
     apis.value = await api.listApis()
   } catch (e) {
@@ -114,17 +125,29 @@ function rowLabel(a) {
       <header class="mb-4 flex items-center gap-3">
         <div class="min-w-0">
           <h1 class="m-0 text-[20px] font-bold tracking-tight">API Registry</h1>
-          <p class="label-sm m-0 mt-0.5 truncate">{{ apis.length }} registered · {{ apis.filter((a) => a.is_active).length }} active</p>
+          <p class="label-sm m-0 mt-0.5 truncate">{{ pagedApis.length }} shown · {{ apis.length }} total · {{ apis.filter((a) => a.is_active).length }} active</p>
         </div>
         <span class="flex-1"></span>
         <button class="btn-primary tappable !px-3 !py-2 text-[13px]" @click="newForm">+ Register</button>
       </header>
 
-      <p v-if="error" class="text-bad">{{ error }}</p>
-      <p v-if="loading" class="text-mute">Loading…</p>
+      <div v-if="error" class="mb-3 text-[13px] text-bad">{{ error }}</div>
+      <div v-if="loading" class="flex flex-col gap-2">
+        <div v-for="i in 4" :key="i" class="animate-pulse rounded-[18px] bg-panel shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+          <div class="px-4 py-3">
+            <div class="h-3.5 w-32 rounded-md bg-panel-2"></div>
+            <div class="mt-2 h-3 w-48 rounded-md bg-panel-2"></div>
+          </div>
+          <div class="flex items-center gap-2 border-t px-3 py-2" :style="{ borderColor: 'var(--color-line)' }">
+            <div class="h-3 w-20 rounded-md bg-panel-2"></div>
+            <span class="flex-1"></span>
+            <div class="h-5 w-12 rounded-full bg-panel-2"></div>
+          </div>
+        </div>
+      </div>
 
-      <div v-else-if="apis.length" class="divide-y divide-solid" style="border-color: var(--color-line)">
-        <div v-for="a in apis" :key="a.id" class="rounded-[18px] bg-panel shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+      <div v-else-if="apis.length" class="flex flex-col gap-2">
+        <div v-for="a in pagedApis" :key="a.id" class="rounded-[18px] bg-panel shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
           <button class="inset-cell tappable w-full text-left" style="border-radius: 18px; border-bottom: 1px solid transparent" @click="openEdit(a.id)">
             <div class="min-w-0">
               <div class="truncate font-[600]">{{ a.name }}</div>
@@ -153,7 +176,21 @@ function rowLabel(a) {
         </div>
       </div>
 
-      <div v-else class="rounded-[18px] bg-panel py-12 text-center shadow-sm">
+      <div v-if="totalPages > 1" class="mt-3 flex items-center justify-between rounded-[18px] bg-panel px-3 py-2 shadow-sm">
+        <button class="tappable flex h-9 w-9 items-center justify-center rounded-full text-ink disabled:opacity-30"
+          :disabled="page <= 1" @click="page--">
+          <svg width="17" height="17" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="flex items-center gap-1.5">
+          <button v-for="p in totalPages" :key="p" class="tappable h-9 min-w-9 rounded-full px-2 text-[13px] font-semibold"
+            :class="p === page ? 'bg-accent text-white' : 'text-mute hover:bg-panel-2'" @click="page = p">{{ p }}</button>
+        </div>        <button class="tappable flex h-9 w-9 items-center justify-center rounded-full text-ink disabled:opacity-30"
+          :disabled="page >= totalPages" @click="page++">
+          <svg width="17" height="17" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.2" d="M9 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+
+      <div v-else-if="!loading && !error && !apis.length" class="rounded-[18px] bg-panel py-12 text-center shadow-sm">
         <p class="mt-0 mb-3 text-mute">The gateway only exposes what's in this list.</p>
         <button class="btn-primary tappable" @click="newForm">Register your first API</button>
       </div>

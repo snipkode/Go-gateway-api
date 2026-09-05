@@ -67,7 +67,7 @@ const cards = computed(() => [
     </select>
 
     <template v-if="stats">
-      <div class="grid grid-cols-5 gap-2 py-2">
+      <div class="grid grid-cols-3 gap-1.5 py-2 sm:grid-cols-5 sm:gap-2">
         <div v-for="c in cards" :key="c.label" class="flex flex-col items-center rounded-[16px] bg-panel py-3 shadow-sm">
           <div class="text-[17px] font-bold" :class="c.cls">{{ c.value }}</div>
           <div class="label-sm pt-0.5">{{ c.label }}</div>

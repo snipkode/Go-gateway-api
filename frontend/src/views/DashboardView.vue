@@ -48,7 +48,7 @@ const statCards = computed(() => [
 
     <p v-if="error" class="text-bad">{{ error }}</p>
 
-    <div class="grid grid-cols-4 gap-2 py-2">
+    <div class="grid grid-cols-2 gap-2 py-2 sm:grid-cols-4">
       <div v-if="!loading" v-for="s in statCards" :key="s.label" class="flex flex-col items-center rounded-[16px] bg-panel py-3 shadow-sm">
         <div class="text-[19px] font-bold" :class="s.cls">{{ s.value }}</div>
         <div class="label-sm pt-0.5">{{ s.label }}</div>
