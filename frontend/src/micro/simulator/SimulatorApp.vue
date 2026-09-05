@@ -223,7 +223,7 @@ function pretty(respText) {
       <!-- JWT preview strip -->
       <div v-if="tokenText" class="mt-2 flex items-center gap-2">
         <code class="thin-scroll block min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-lg bg-panel-2 px-2.5 py-1.5 text-[11px] text-accent">{{ tokenText.slice(0, 28) }}…{{ tokenText.slice(-12) }}</code>
-        <span class="shrink-0 text-[10px] text-ok">JWT ready</span>
+        <span class="shrink-0 text-[10px] text-ok">{{ tokenCopied ? 'Tersalin ✓' : 'Salin clipboard' }}</span>
       </div>
 
       <!-- response panel -->
