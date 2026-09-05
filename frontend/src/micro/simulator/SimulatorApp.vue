@@ -90,13 +90,17 @@ function methodColor(m) {
 
 function grabToken() {
   tokenText.value = auth.token
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(auth.token).then(() => {
-      tokenCopied.value = true
-      setTimeout(() => (tokenCopied.value = false), 1600)
-    }).catch(() => {})
+  if (!auth.token) { show('Belum login — masuk dulu'); return }
+  const done = () => {
+    tokenCopied.value = true
+    setTimeout(() => (tokenCopied.value = false), 1600)
+    show('Token disalin ke clipboard')
   }
-  show(tokenText.value ? 'Session token copied to clipboard' : 'No session — sign in first')
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(auth.token).then(done).catch(() => fallbackCopy(auth.token, done))
+  } else {
+    fallbackCopy(auth.token, done)
+  }
 }
 
 async function publish() {
@@ -215,11 +219,35 @@ curl -s${methodFlag} "$GATEWAY_URL${path}"${jwtHeader}${ctHeader}${body}`
 function copyCurl() {
   const text = curlDoc.value
   if (!text) return
-  navigator.clipboard?.writeText(text).then(() => {
+
+  const done = () => {
     curlCopied.value = true
     setTimeout(() => (curlCopied.value = false), 1800)
-  }).catch(() => {})
-  show('Curl command disalin!')
+    show('Curl command disalin!')
+  }
+
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done))
+  } else {
+    fallbackCopy(text, done)
+  }
+}
+
+function fallbackCopy(text, done) {
+  const el = document.createElement('textarea')
+  el.value = text
+  el.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0'
+  document.body.appendChild(el)
+  el.focus()
+  el.select()
+  try {
+    document.execCommand('copy')
+    done()
+  } catch {
+    show('Gagal menyalin — coba salin manual')
+  } finally {
+    document.body.removeChild(el)
+  }
 }
 
 function pretty(respText) {
