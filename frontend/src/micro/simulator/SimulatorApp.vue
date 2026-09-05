@@ -125,6 +125,13 @@ function buildUrl() {
   return window.location.origin + base + (sub ? '/' + sub : '')
 }
 
+// URL untuk curl: pakai path relatif saja (tanpa origin dev server)
+function buildCurlPath() {
+  const base = selected.value.base_path.replace(/\/+$/, '')
+  const sub = (subpath.value || '').replace(/^\/+/, '')
+  return base + (sub ? '/' + sub : '')
+}
+
 async function send() {
   if (!selectedId.value) return
   sending.value = true
@@ -171,8 +178,8 @@ const curlCopied = ref(false)
 
 const curlLive = computed(() => {
   if (!selected.value) return ''
-  const url = buildUrl()
-  const lines = [`curl -s -X ${method.value} "${url}"`]
+  const path = buildCurlPath()
+  const lines = [`curl -s -X ${method.value} "https://your-gateway${path}"`]
   if (attachJwt.value) lines.push(`  -H "Authorization: Bearer $TOKEN"`)
   if (allMethodBody.includes(method.value)) {
     lines.push(`  -H "Content-Type: application/json"`)
