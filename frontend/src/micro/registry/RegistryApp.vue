@@ -15,9 +15,9 @@ function onResize() { mobile.value = window.innerWidth < 640; perPage.value = mo
 onMounted(() => window.addEventListener('resize', onResize))
 onUnmounted(() => window.removeEventListener('resize', onResize))
 const page = ref(1)
-const totalPages = computed(() => Math.max(1, Math.ceil(apis.value.length / perPage)))
+const totalPages = computed(() => Math.max(1, Math.ceil(apis.value.length / perPage.value)))
 watch(totalPages, (tp) => { if (page.value > tp) page.value = tp })
-const pagedApis = computed(() => apis.value.slice((page.value - 1) * perPage, page.value * perPage))
+const pagedApis = computed(() => apis.value.slice((page.value - 1) * perPage.value, page.value * perPage.value))
 
 const mode = ref(props.init ? 'edit' : 'list')
 const editId = ref(props.init ? Number(props.init) : null)
