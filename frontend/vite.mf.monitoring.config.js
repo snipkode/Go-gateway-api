@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  define: { 'process.env.NODE_ENV': JSON.stringify('production') },
   base: '/admin/mf/monitoring/',
   publicDir: false,
   plugins: [vue(), tailwindcss()],
