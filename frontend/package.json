@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "mf:registry": "vite build -c vite.mf.registry.config.js",
+    "mf:simulator": "vite build -c vite.mf.simulator.config.js",
+    "mf:monitoring": "vite build -c vite.mf.monitoring.config.js",
+    "mf:docs": "vite build -c vite.mf.docs.config.js",
+    "build": "vite build && npm run mf:registry && npm run mf:simulator && npm run mf:monitoring && npm run mf:docs",
     "preview": "vite preview"
   },
   "dependencies": {

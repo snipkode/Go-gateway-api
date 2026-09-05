@@ -1,25 +1,139 @@
 @import "tailwindcss";
 
+/* ── Apple-inspired theme · mobile-first compact ──────────────────── */
 @theme {
-  --color-bg: #0f1220;
-  --color-panel: #171b2e;
-  --color-panel-2: #1e2338;
-  --color-line: #2a3050;
-  --color-ink: #e6e9f4;
-  --color-mute: #8b93b0;
-  --color-accent: #4f7cff;
-  --color-accent-2: #7aa2ff;
-  --color-ok: #37d67a;
-  --color-warn: #ffb454;
-  --color-bad: #ff5b6a;
+  --color-bg: #f5f5f7;
+  --color-panel: #ffffff;
+  --color-panel-2: #f4f4f6;
+  --color-line: #d9d9de;
+  --color-ink: #1d1d1f;
+  --color-mute: #6e6e73;
+  --color-accent: #0071e3;
+  --color-accent-2: #0a84ff;
+  --color-accent-tint: #e8f1fd;
+  --color-ok: #34c759;
+  --color-warn: #ff9f0a;
+  --color-bad: #ff3b30;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   background: var(--color-bg);
   color: var(--color-ink);
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 14px; /* compact base size */
 }
 
-.mono {
-  font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+/* iOS-style inset grouped list cell */
+.inset-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid var(--color-line);
+}
+.inset-cell:last-child {
+  border-bottom: none;
+}
+
+/* Small uppercase section label (Apple settings style) */
+.label-sm {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--color-mute);
+}
+
+/* Apple-button */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.75rem;
+  background: var(--color-accent);
+  color: #fff;
+  font-weight: 500;
+  padding: 0.6rem 1rem;
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+.btn-primary:active {
+  transform: scale(0.97);
+}
+.btn-primary:hover {
+  filter: brightness(1.08);
+}
+.btn-primary:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-weight: 500;
+  padding: 0.55rem 1rem;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+.btn-ghost:active {
+  transform: scale(0.97);
+}
+.btn-ghost:hover {
+  background: var(--color-panel-2);
+}
+
+/* Segmented control (iOS style) */
+.seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 999px;
+  background: var(--color-panel-2);
+  border: 1px solid var(--color-line);
+}
+.seg button {
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-mute);
+  transition: all 0.15s ease;
+}
+.seg button.on {
+  background: var(--color-panel);
+  color: var(--color-ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.frost {
+  background: rgba(245, 245, 247, 0.82);
+  backdrop-filter: saturate(180%) blur(16px);
+  -webkit-backdrop-filter: saturate(180%) blur(16px);
+}
+
+.tappable {
+  transition: transform 0.05s ease, opacity 0.12s ease;
+}
+.tappable:active {
+  transform: scale(0.96);
+  opacity: 0.8;
+}
+
+/* thin, quiet scrollbars in the panel tables */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line) transparent;
 }

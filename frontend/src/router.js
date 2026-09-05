@@ -1,34 +1,26 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { auth } from './api'
+import { auth } from './lib/api.js'
 
-import LoginView from './views/LoginView.vue'
-import DashboardView from './views/DashboardView.vue'
-import ApisView from './views/ApisView.vue'
-import ApiFormView from './views/ApiFormView.vue'
-import SimulatorView from './views/SimulatorView.vue'
-import MonitoringView from './views/MonitoringView.vue'
-import DocsView from './views/DocsView.vue'
+const routes = [
+  { path: '/login', name: 'login', component: () => import('./views/LoginView.vue'), meta: { guest: true } },
+  { path: '/', name: 'dashboard', component: () => import('./views/DashboardView.vue'), props: true },
+  { path: '/apis', name: 'apis', component: () => import('./views/MicroHost.vue'), props: () => ({ name: 'registry' }) },
+  { path: '/apis/:id/edit', name: 'api-edit', component: () => import('./views/MicroHost.vue'), props: (r) => ({ name: 'registry', init: r.params.id }) },
+  { path: '/simulate', name: 'simulate', component: () => import('./views/MicroHost.vue'), props: () => ({ name: 'simulator' }) },
+  { path: '/monitoring', name: 'monitoring', component: () => import('./views/MicroHost.vue'), props: () => ({ name: 'monitoring' }) },
+  { path: '/docs', name: 'docs', component: () => import('./views/MicroHost.vue'), props: () => ({ name: 'docs' }) },
+  { path: '/:pathMatch(.*)*', redirect: '/' }
+]
 
-const router = createRouter({
+export const router = createRouter({
   history: createWebHistory('/admin/'),
-  routes: [
-    { path: '/login', name: 'login', component: LoginView, meta: { public: true } },
-    { path: '/', redirect: '/dashboard' },
-    { path: '/dashboard', name: 'dashboard', component: DashboardView },
-    { path: '/apis', name: 'apis', component: ApisView },
-    { path: '/apis/new', name: 'api-new', component: ApiFormView },
-    { path: '/apis/:id/edit', name: 'api-edit', component: ApiFormView },
-    { path: '/simulate', name: 'simulate', component: SimulatorView },
-    { path: '/monitoring', name: 'monitoring', component: MonitoringView },
-    { path: '/docs', name: 'docs', component: DocsView }
-  ]
+  routes
 })
 
 router.beforeEach((to) => {
-  const loggedIn = !!auth.token
-  if (!to.meta.public && !loggedIn) return { name: 'login' }
-  if (to.name === 'login' && loggedIn) return { name: 'dashboard' }
+  if (!to.meta?.guest && !auth.token) {
+    return { name: 'login', query: to.fullPath !== '/' ? { next: to.fullPath } : {} }
+  }
+  if (to.name === 'login' && auth.token) return { name: 'dashboard' }
   return true
 })
-
-export default router
