@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { api, auth } from '../../lib/api.js'
 import { show } from '../../lib/toast.js'
 
@@ -11,6 +11,33 @@ const snippet = ref('')
 const previewing = ref(false)
 const publishing = ref(false)
 const error = ref('')
+
+// ── custom dropdown ──
+const dropOpen = ref(false)
+const dropSearch = ref('')
+const dropRef = ref(null)
+
+const filteredApis = computed(() => {
+  const q = dropSearch.value.trim().toLowerCase()
+  if (!q) return apis.value
+  return apis.value.filter(
+    (a) => a.name.toLowerCase().includes(q) || a.base_path.toLowerCase().includes(q)
+  )
+})
+
+function pickApi(id) {
+  selectedId.value = String(id)
+  dropOpen.value = false
+  dropSearch.value = ''
+  onSelect()
+}
+
+function onClickOutside(e) {
+  if (dropRef.value && !dropRef.value.contains(e.target)) {
+    dropOpen.value = false
+    dropSearch.value = ''
+  }
+}
 
 // ── request tester state ──
 const subpath = ref('healthz')
@@ -24,6 +51,7 @@ const tokenCopied = ref(false)
 const allMethodBody = ['POST', 'PUT', 'PATCH']
 
 onMounted(async () => {
+  document.addEventListener('mousedown', onClickOutside)
   try {
     apis.value = await api.listApis()
     if (!selectedId.value) selectedId.value = String(apis.value[0]?.id || '')
@@ -33,7 +61,22 @@ onMounted(async () => {
   }
 })
 
+onBeforeUnmount(() => {
+  document.removeEventListener('mousedown', onClickOutside)
+})
+
 const selected = computed(() => apis.value.find((a) => a.id === Number(selectedId.value)))
+
+// badge colour per method
+function methodColor(m) {
+  return {
+    GET: 'text-[#34c759] bg-[#34c759]/10',
+    POST: 'text-[#0071e3] bg-[#0071e3]/10',
+    PUT: 'text-[#ff9f0a] bg-[#ff9f0a]/10',
+    PATCH: 'text-[#ff9f0a] bg-[#ff9f0a]/10',
+    DELETE: 'text-[#ff3b30] bg-[#ff3b30]/10',
+  }[m] ?? 'text-mute bg-panel-2'
+}
 
 function grabToken() {
   tokenText.value = auth.token
@@ -139,14 +182,116 @@ function pretty(respText) {
 
     <!-- ── API selector + meta ── -->
     <div class="mb-4 rounded-[18px] bg-panel p-4 shadow-sm">
-      <label class="label-sm block pb-2">Registered API</label>
-      <select v-model="selectedId" @change="onSelect"
-        class="w-full rounded-xl border bg-panel-2 px-3 py-2.5 text-[14px] focus:outline-none"
-        :style="{ borderColor: 'var(--color-line)' }">
-        <option v-for="a in apis" :key="a.id" :value="a.id">{{ a.name }} — {{ a.base_path }}</option>
-      </select>
+      <div class="label-sm pb-2">Registered API</div>
 
-      <!-- 2-col on sm+, 1-col on xs -->
+      <!-- Custom dropdown trigger -->
+      <div ref="dropRef" class="relative">
+        <button
+          type="button"
+          class="tappable flex w-full items-center gap-3 rounded-xl border bg-panel-2 px-3 py-2.5 text-left transition-colors hover:bg-[var(--color-accent-tint)]"
+          :style="{ borderColor: dropOpen ? 'var(--color-accent)' : 'var(--color-line)' }"
+          @click="dropOpen = !dropOpen"
+        >
+          <!-- selected state -->
+          <div v-if="selected" class="min-w-0 flex-1">
+            <div class="flex items-center gap-2">
+              <span class="truncate text-[14px] font-medium">{{ selected.name }}</span>
+              <span v-if="selected.requires_auth" class="shrink-0 rounded-full bg-[#0071e3]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[#0071e3]">JWT</span>
+              <span v-else class="shrink-0 rounded-full bg-ok/10 px-1.5 py-0.5 text-[10px] font-semibold text-ok">open</span>
+            </div>
+            <div class="truncate text-[11px] text-mute">{{ selected.base_path }}</div>
+          </div>
+          <div v-else class="flex-1 text-[14px] text-mute">Pilih API…</div>
+
+          <!-- chevron -->
+          <svg class="shrink-0 text-mute transition-transform duration-200" :class="{ 'rotate-180': dropOpen }" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <!-- Dropdown popup -->
+        <Transition
+          enter-active-class="transition duration-150 ease-out"
+          enter-from-class="opacity-0 translate-y-1 scale-[0.98]"
+          enter-to-class="opacity-100 translate-y-0 scale-100"
+          leave-active-class="transition duration-100 ease-in"
+          leave-from-class="opacity-100 translate-y-0 scale-100"
+          leave-to-class="opacity-0 translate-y-1 scale-[0.98]"
+        >
+          <div
+            v-if="dropOpen"
+            class="absolute left-0 right-0 top-[calc(100%+6px)] z-50 overflow-hidden rounded-[18px] border bg-panel shadow-xl"
+            :style="{ borderColor: 'var(--color-line)', boxShadow: '0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)' }"
+          >
+            <!-- search box -->
+            <div class="flex items-center gap-2 border-b px-3 py-2.5" :style="{ borderColor: 'var(--color-line)' }">
+              <svg class="shrink-0 text-mute" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <circle cx="6" cy="6" r="4.5" stroke="currentColor" stroke-width="1.5"/>
+                <path d="M10 10l2.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              <input
+                v-model="dropSearch"
+                type="text"
+                placeholder="Cari nama atau path…"
+                autofocus
+                class="flex-1 bg-transparent text-[13px] focus:outline-none"
+              />
+              <button v-if="dropSearch" class="text-mute hover:text-ink" @click="dropSearch = ''">
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M3 3l7 7M10 3l-7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- list -->
+            <ul class="thin-scroll max-h-[260px] overflow-y-auto py-1">
+              <li v-if="filteredApis.length === 0" class="px-4 py-6 text-center text-[12px] text-mute">
+                Tidak ada hasil
+              </li>
+              <li
+                v-for="a in filteredApis"
+                :key="a.id"
+                class="tappable group flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors hover:bg-panel-2"
+                :class="{ 'bg-[var(--color-accent-tint)]': String(a.id) === String(selectedId) }"
+                @click="pickApi(a.id)"
+              >
+                <!-- check mark -->
+                <span class="mt-0.5 w-4 shrink-0 text-[var(--color-accent)]">
+                  <svg v-if="String(a.id) === String(selectedId)" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </span>
+
+                <div class="min-w-0 flex-1">
+                  <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                    <span class="text-[13px] font-medium">{{ a.name }}</span>
+                    <!-- method badges -->
+                    <span
+                      v-for="m in (a.methods || []).slice(0, 3)"
+                      :key="m"
+                      class="rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+                      :class="methodColor(m)"
+                    >{{ m }}</span>
+                  </div>
+                  <div class="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] text-mute">
+                    <code class="text-accent">{{ a.base_path }}</code>
+                    <span v-if="a.requires_auth" class="text-[#0071e3]">· JWT</span>
+                    <span v-else class="text-ok">· open</span>
+                    <span class="ml-auto shrink-0">{{ a.rate_limit_rpm }}r/m</span>
+                  </div>
+                </div>
+              </li>
+            </ul>
+
+            <!-- footer count -->
+            <div class="border-t px-4 py-2 text-[10px] text-mute" :style="{ borderColor: 'var(--color-line)' }">
+              {{ filteredApis.length }} dari {{ apis.length }} API
+            </div>
+          </div>
+        </Transition>
+      </div>
+
+      <!-- meta cards -->
       <div class="mt-3 grid grid-cols-1 gap-2 text-[12px] min-[400px]:grid-cols-2">
         <div class="rounded-xl bg-panel-2 px-3 py-2">
           <div class="label-sm">Upstream</div>
@@ -166,7 +311,6 @@ function pretty(respText) {
         </div>
       </div>
 
-      <!-- stacked on mobile, side-by-side on sm+ -->
       <div class="mt-3 flex flex-col gap-2 min-[400px]:flex-row">
         <button class="btn-ghost tappable flex-1" :disabled="previewing" @click="preview">
           {{ previewing ? 'Rendering…' : '↻ Preview config' }}
@@ -186,7 +330,6 @@ function pretty(respText) {
         </span>
       </div>
 
-      <!-- base_path badge stacked above the subpath input on very narrow screens -->
       <div class="flex flex-col gap-1.5 min-[400px]:flex-row min-[400px]:items-center min-[400px]:gap-2">
         <code class="inline-block shrink-0 rounded-lg bg-panel-2 px-2 py-1.5 text-[12px] text-accent leading-snug break-all">{{ selected?.base_path }}</code>
         <input v-model="subpath" type="text" placeholder="healthz"
@@ -194,7 +337,6 @@ function pretty(respText) {
           :style="{ borderColor: 'var(--color-line)' }" />
       </div>
 
-      <!-- method seg: allow wrapping so many methods don't overflow -->
       <div class="seg mt-2.5 flex-wrap">
         <button v-for="m in selected?.methods || ['GET']" :key="m" type="button"
           :class="{ on: method === m }" @click="method = m">{{ m }}</button>
@@ -205,7 +347,6 @@ function pretty(respText) {
         class="mt-2 w-full rounded-xl border bg-panel-2 px-3 py-2 text-[12px] focus:outline-none"
         :style="{ borderColor: 'var(--color-line)' }"></textarea>
 
-      <!-- JWT toggle row + action buttons: wrap naturally, full-width on xs -->
       <div class="mt-2.5 flex flex-wrap items-center gap-2">
         <label class="flex items-center gap-2 text-[12px]">
           <input v-model="attachJwt" type="checkbox" class="accent-[#0071e3]" />
@@ -220,15 +361,28 @@ function pretty(respText) {
         </button>
       </div>
 
-      <!-- JWT preview strip -->
       <div v-if="tokenText" class="mt-2 flex items-center gap-2">
         <code class="thin-scroll block min-w-0 flex-1 overflow-x-auto whitespace-nowrap rounded-lg bg-panel-2 px-2.5 py-1.5 text-[11px] text-accent">{{ tokenText.slice(0, 28) }}…{{ tokenText.slice(-12) }}</code>
-        <span class="shrink-0 text-[10px] text-ok">{{ tokenCopied ? 'Tersalin ✓' : 'Salin clipboard' }}</span>
+        <!-- clipboard icon button -->
+        <button
+          class="tappable shrink-0 rounded-lg p-1.5 transition-colors"
+          :class="tokenCopied ? 'bg-ok/10 text-ok' : 'bg-panel-2 text-mute hover:text-ink'"
+          :title="tokenCopied ? 'Tersalin!' : 'Salin ke clipboard'"
+          @click="grabToken"
+        >
+          <!-- copy icon -->
+          <svg v-if="!tokenCopied" width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <rect x="4.5" y="1.5" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M1.5 4.5H3a1 1 0 011 1v7a1 1 0 001 1h5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <!-- check icon -->
+          <svg v-else width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
       </div>
 
-      <!-- response panel -->
       <div v-if="resp" class="mt-3 overflow-hidden rounded-xl border" :style="{ borderColor: 'var(--color-line)' }">
-        <!-- status bar: wrap on narrow screens -->
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1 border-b px-3 py-2 text-[11px]"
           :style="{ borderColor: 'var(--color-line)' }">
           <span class="rounded-full px-2 py-0.5 font-bold shrink-0"
