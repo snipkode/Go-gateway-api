@@ -46,6 +46,31 @@ function grabToken() {
   show(tokenText.value ? 'Session token copied to clipboard' : 'No session — sign in first')
 }
 
+async function preview() {
+  if (!selectedId.value) return
+  previewing.value = true
+  try {
+    const data = await api.previewApi(selectedId.value)
+    snippet.value = data?.config ?? data ?? ''
+  } catch (e) {
+    show('Preview failed: ' + e.message)
+  } finally {
+    previewing.value = false
+  }
+}
+
+async function publish() {
+  publishing.value = true
+  try {
+    await api.publish()
+    show('Gateway config published & reloaded')
+  } catch (e) {
+    show('Publish failed: ' + e.message)
+  } finally {
+    publishing.value = false
+  }
+}
+
 function onSelect() {
   preview()
   autoSend()
