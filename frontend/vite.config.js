@@ -9,7 +9,9 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': 'http://localhost:18080',
-      '/swagger': 'http://localhost:18080'
+      '/swagger': 'http://localhost:18080',
+      '/admin/mf-manifest.json': 'http://localhost:18080',
+      '/admin/mf/': 'http://localhost:18080'
     }
   },
   build: {
