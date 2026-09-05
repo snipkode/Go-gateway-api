@@ -57,7 +57,7 @@ const cards = computed(() => [
         <p class="label-sm m-0 mt-0.5">Live traffic · refreshes every 5s</p>
       </div>
       <span class="inline-flex items-center gap-1.5 text-[11px] text-mute">
-        <span ref="dot" class="h-2 w-2 rounded-full bg-ok animate-pulse"></span> live
+        <span class="h-2 w-2 rounded-full bg-ok animate-pulse"></span> live
       </span>
     </header>
 

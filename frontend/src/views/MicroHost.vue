@@ -1,5 +1,5 @@
 <script setup>
-import { ref, watch, inject, computed } from 'vue'
+import { ref, watch, inject, computed, markRaw, shallowRef } from 'vue'
 
 const props = defineProps({
   name: { type: String, required: true },
@@ -7,7 +7,7 @@ const props = defineProps({
 })
 
 const mfManifest = inject('mfManifest', ref([]))
-const comp = ref(null)
+const comp = shallowRef(null)
 const err = ref('')
 
 const entry = computed(() => mfManifest.value?.find((x) => x.name === props.name))
@@ -29,7 +29,7 @@ async function load() {
       document.head.appendChild(l)
       window.__mfCssLoaded[m.css] = true
     }
-    comp.value = (await import(/* @vite-ignore */ m.js)).default
+    comp.value = markRaw((await import(/* @vite-ignore */ m.js)).default)
   } catch (e) {
     err.value = `failed to load "${props.name}": ${e.message}`
   }
