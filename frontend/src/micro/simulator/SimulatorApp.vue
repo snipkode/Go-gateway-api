@@ -167,19 +167,39 @@ async function send() {
   }
 }
 
+const curlCopied = ref(false)
+
+const curlLive = computed(() => {
+  if (!selected.value) return ''
+  const url = buildUrl()
+  const lines = [`curl -s -X ${method.value} "${url}"`]
+  if (attachJwt.value) lines.push(`  -H "Authorization: Bearer $TOKEN"`)
+  if (allMethodBody.includes(method.value)) {
+    lines.push(`  -H "Content-Type: application/json"`)
+    if (bodyText.value) lines.push(`  -d '${bodyText.value.replace(/'/g, `'\\''`)}'`)
+  }
+  return lines.join(' \\\n')
+})
+
+// legacy full doc (with token acquisition step)
 const curlDoc = computed(() => {
   if (!selected.value) return ''
-  const url = `${window.location.origin}${selected.value.base_path.replace(/\/+$/, '')}/healthz`
-  const authFlag = selected.value.methods.includes('POST') ? '-X POST' : ''
-  const jwt = selected.value.requires_auth ? ` -H "Authorization: Bearer $TOKEN"` : ''
-  return `# 1) get a token (demo admin)
-TOKEN=$(curl -s -X POST ${window.location.origin}/api/v1/auth/login \\
-  -H "Content-Type: application/json" \\
-  -d '{"email":"admin@example.com","password":"admin123"}' | jq -r .data.access_token)
-
-# 2) call the registered API through the gateway
-curl -s ${selected.value.methods[0]}${url}${authFlag}${jwt}`
+  const needsToken = selected.value.requires_auth
+  const tokenBlock = needsToken
+    ? `# 1) ambil token\nTOKEN=$(curl -s -X POST ${window.location.origin}/api/v1/auth/login \\\n  -H "Content-Type: application/json" \\\n  -d '{"email":"admin@example.com","password":"admin123"}' | jq -r .data.access_token)\n\n# 2) panggil API\n`
+    : ''
+  return tokenBlock + curlLive.value
 })
+
+function copyCurl() {
+  const text = curlDoc.value
+  if (!text) return
+  navigator.clipboard?.writeText(text).then(() => {
+    curlCopied.value = true
+    setTimeout(() => (curlCopied.value = false), 1800)
+  }).catch(() => {})
+  show('Curl command disalin!')
+}
 
 function pretty(respText) {
   try { return JSON.stringify(JSON.parse(respText), null, 2) } catch { return respText }
@@ -450,7 +470,23 @@ function pretty(respText) {
     <div class="overflow-hidden rounded-[18px] bg-panel shadow-sm">
       <div class="flex items-center gap-2 px-4 py-3">
         <span class="h-2 w-2 rounded-full bg-ok shrink-0"></span>
-        <span class="text-[11px] text-mute">Contoh curl untuk API ini</span>
+        <span class="flex-1 text-[11px] text-mute">Contoh curl untuk API ini</span>
+        <button
+          v-if="curlDoc"
+          class="tappable flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-medium transition-colors"
+          :class="curlCopied ? 'bg-ok/10 text-ok' : 'bg-panel-2 text-mute hover:text-ink'"
+          @click="copyCurl"
+        >
+          <!-- copy icon -->
+          <svg v-if="!curlCopied" width="12" height="12" viewBox="0 0 14 14" fill="none">
+            <rect x="4.5" y="1.5" width="8" height="9" rx="1.5" stroke="currentColor" stroke-width="1.4"/>
+            <path d="M1.5 4.5H3a1 1 0 011 1v7a1 1 0 001 1h5.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <svg v-else width="12" height="12" viewBox="0 0 14 14" fill="none">
+            <path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          {{ curlCopied ? 'Tersalin!' : 'Salin' }}
+        </button>
       </div>
       <pre v-if="curlDoc" class="thin-scroll m-0 max-h-[260px] overflow-x-auto border-t bg-panel-2 px-4 py-3 text-[11px] leading-relaxed"
         :style="{ borderColor: 'var(--color-line)' }">{{ curlDoc }}</pre>
