@@ -255,44 +255,36 @@ function pretty(respText) {
             </div>
 
             <!-- list -->
-            <ul class="thin-scroll max-h-[260px] overflow-y-auto py-1">
-              <li v-if="filteredApis.length === 0" class="px-4 py-6 text-center text-[12px] text-mute">
+            <ul class="thin-scroll max-h-[240px] overflow-y-auto py-1">
+              <li v-if="filteredApis.length === 0" class="px-4 py-5 text-center text-[12px] text-mute">
                 Tidak ada hasil
               </li>
               <template v-for="item in groupedApis" :key="item.type === 'header' ? 'h-' + item.label : item.id">
                 <!-- section header -->
-                <li v-if="item.type === 'header'"
-                  class="flex items-center gap-2 px-3 pb-1 pt-2.5 first:pt-1">
+                <li v-if="item.type === 'header'" class="px-3 pb-0.5 pt-3 first:pt-2">
                   <span class="label-sm">{{ item.label }}</span>
-                  <span class="h-px flex-1 bg-[var(--color-line)]"></span>
                 </li>
-                <!-- api item -->
+                <!-- api item: single clean row -->
                 <li v-else
-                  class="tappable group flex cursor-pointer items-start gap-3 px-3 py-2.5 transition-colors hover:bg-panel-2"
+                  class="tappable flex cursor-pointer items-center gap-2.5 rounded-xl mx-1.5 px-2.5 py-2 transition-colors hover:bg-panel-2"
                   :class="{ 'bg-[var(--color-accent-tint)]': String(item.id) === String(selectedId) }"
                   @click="pickApi(item.id)"
                 >
-                  <span class="mt-0.5 w-4 shrink-0 text-[var(--color-accent)]">
-                    <svg v-if="String(item.id) === String(selectedId)" width="14" height="14" viewBox="0 0 14 14" fill="none">
-                      <path d="M2.5 7l3.5 3.5 5.5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
+                  <!-- active dot / empty spacer -->
+                  <span class="h-1.5 w-1.5 shrink-0 rounded-full transition-colors"
+                    :class="String(item.id) === String(selectedId) ? 'bg-[var(--color-accent)]' : 'bg-transparent'">
                   </span>
-                  <div class="min-w-0 flex-1">
-                    <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <span class="text-[13px] font-medium">{{ item.name }}</span>
-                      <span
-                        v-for="m in (item.methods || []).slice(0, 3)" :key="m"
-                        class="rounded-full px-1.5 py-0.5 text-[10px] font-bold"
-                        :class="methodColor(m)"
-                      >{{ m }}</span>
-                    </div>
-                    <div class="flex flex-wrap items-center gap-2 pt-0.5 text-[11px] text-mute">
-                      <code class="text-accent">{{ item.base_path }}</code>
-                      <span v-if="item.requires_auth" class="text-[#0071e3]">· JWT</span>
-                      <span v-else class="text-ok">· open</span>
-                      <span class="ml-auto shrink-0">{{ item.rate_limit_rpm }}r/m</span>
-                    </div>
-                  </div>
+                  <!-- name -->
+                  <span class="min-w-0 flex-1 truncate text-[13px]"
+                    :class="String(item.id) === String(selectedId) ? 'font-semibold text-ink' : 'text-ink'">
+                    {{ item.name }}
+                  </span>
+                  <!-- path pill -->
+                  <code class="shrink-0 truncate rounded-md bg-panel-2 px-1.5 py-0.5 text-[10px] text-mute max-w-[120px]">{{ item.base_path }}</code>
+                  <!-- auth dot -->
+                  <span class="h-1.5 w-1.5 shrink-0 rounded-full"
+                    :class="item.requires_auth ? 'bg-[#0071e3]' : 'bg-ok'">
+                  </span>
                 </li>
               </template>
             </ul>
