@@ -36,6 +36,7 @@ spec:
         # ── nginx gateway ───────────────────────────────────────────────
         - name: nginx
           image: go-enterprise-gateway:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
           env:
@@ -56,6 +57,7 @@ spec:
         # ── Go API ─────────────────────────────────────────────────────
         - name: api
           image: go-enterprise-api:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
           envFrom:

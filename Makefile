@@ -8,8 +8,10 @@
 COMPOSE_FILE := deployments/docker-compose.yml
 KUBE_DIR     := deployments/kubernetes
 NS           := go-enterprise
-IMG_PREFIX   ?= go-enterprise   # set to a registry (e.g. ghcr.io/<user>) for k8s-push
-VERSION      ?= latest
+# Set to a registry (e.g. ghcr.io/<user>) to make `k8s-push` target it instead
+# of the default local-only image prefix.
+IMG_PREFIX ?= go-enterprise
+VERSION ?= latest
 
 .DEFAULT_GOAL := help
 
@@ -85,9 +87,9 @@ k8s-build: build-frontend ## Build all images locally (api, gateway, mock-idp)
 
 k8s-push:        ## Push images (set IMG_PREFIX to a real registry first)
 	@test "$(IMG_PREFIX)" != "go-enterprise" || (echo "set IMG_PREFIX to your registry (e.g. ghcr.io/<user>)" && exit 1)
-	docker tag $(IMG_PREFIX)-api:latest      $(IMG_PREFIX)-api:$(VERSION)
+	docker tag $(IMG_PREFIX)-api:latest        $(IMG_PREFIX)-api:$(VERSION)
 	docker tag $(IMG_PREFIX)-gateway:$(VERSION) $(IMG_PREFIX)-gateway:$(VERSION)
-	docker tag $(IMG_PREFIX)-mock-idp:latest $(IMG_PREFIX)-mock-idp:$(VERSION)
+	docker tag mock-idp:latest                 $(IMG_PREFIX)-mock-idp:$(VERSION)
 	docker push $(IMG_PREFIX)-api:$(VERSION)
 	docker push $(IMG_PREFIX)-gateway:$(VERSION)
 	docker push $(IMG_PREFIX)-mock-idp:$(VERSION)
