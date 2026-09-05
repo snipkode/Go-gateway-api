@@ -1,0 +1,31 @@
+# Non-secret runtime configuration for the Go API.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: go-enterprise
+data:
+  APP_ENV: "production"
+  APP_PORT: "8080"
+  APP_ALLOWED_ORIGINS: "*"
+  APP_LOGGER_LEVEL: "info"
+  APP_SWAGGER_ENABLED: "false"
+  APP_JWT_TTL: "15m"
+  APP_SESSION_TTL: "15m"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: "app"
+  POSTGRES_DB: "go_enterprise"
+  POSTGRES_SSLMODE: "disable"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  # Registry: api + nginx share one emptyDir in the same pod.
+  GATEWAY_CONFIG_DIR: "/app/gateway-configs"
+  GATEWAY_AUTH_UPSTREAM: "http://localhost:8080"
+  # Entra SSO via the bundled mock IdP (override for a real tenant).
+  OAUTH_ISSUER: "http://mock-idp:9090"
+  OAUTH_CLIENT_ID: "mock-client"
+  OAUTH_TENANT_ID: "mock-tenant"
+  OAUTH_DEFAULT_ROLE: "viewer"
+  OAUTH_REDIRECT_URL: "http://localhost:30080/api/v1/auth/entra/callback"

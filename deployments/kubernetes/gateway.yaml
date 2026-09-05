@@ -1,0 +1,73 @@
+# Combined pod: nginx gateway + Go API in one Pod so they share the registry
+# emptyDir (nginx reads generated configs, the API writes them + reads logs),
+# preserving the docker-compose hot-reload semantic without a shared PVC.
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: go-enterprise
+spec:
+  type: NodePort
+  selector:
+    app: gateway
+  ports:
+    - port: 80
+      nodePort: 30080
+      targetPort: 80
+      name: http
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: go-enterprise
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        # ── nginx gateway ───────────────────────────────────────────────
+        - name: nginx
+          image: go-enterprise-gateway:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: APP_GATEWAY_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: APP_GATEWAY_TOKEN
+            - name: APP_UPSTREAM_API
+              value: "127.0.0.1:8080"
+          volumeMounts:
+            - name: registry
+              mountPath: /etc/nginx/registry
+          readinessProbe:
+            httpGet: { path: /healthz, port: 80 }
+            initialDelaySeconds: 5
+
+        # ── Go API ─────────────────────────────────────────────────────
+        - name: api
+          image: go-enterprise-api:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef: { name: app-config }
+            - secretRef: { name: app-secret }
+          volumeMounts:
+            - name: registry
+              mountPath: /app/gateway-configs
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 5
+
+      volumes:
+        - name: registry
+          emptyDir: {}

@@ -1,0 +1,16 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: go-enterprise
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - postgres.yaml
+  - redis.yaml
+  - mock-idp.yaml
+  - gateway.yaml
+
+# Example: to deploy into an existing namespace or add an Ingress, extend here
+# or add an overlay beneath deployments/kubernetes/overlays/prod/.

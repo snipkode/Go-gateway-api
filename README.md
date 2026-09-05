@@ -1,15 +1,17 @@
 # Go Enterprise API
 
-Enterprise boilerplate for a Go backend (Vue.js frontend not included), built
-around **Clean Architecture**. Core enterprise concerns are first-class:
-**Dynamic Rate Limit**, **Soft Delete**, **Audit Logging**, **RBAC**, a
-**Nginx API Gateway**, and **Microsoft Entra (OIDC) SSO** — with a
+Enterprise boilerplate for a Go backend with a **micro-frontend management
+console**, built around **Clean Architecture**. Core enterprise concerns are
+first-class: **Dynamic Rate Limit**, **Soft Delete**, **Audit Logging**,
+**RBAC**, an **Nginx API Gateway** with a **dynamic registered-API registry**
+(+ live monitoring), and **Microsoft Entra (OIDC) SSO** — with a
 **PostgreSQL source of truth** and **Redis** for cache/session/rate-limit
 counters.
 
 ```
-Browser/Vue.js → Nginx Gateway → Go API (GatewayToken → RequestID → Recovery → CORS → Dynamic Rate Limit → Auth → RBAC)
-                                 → Use Case → Repository/PostgreSQL + Audit (same transaction) → Redis
+Browser/Vue console & clients → Nginx Gateway → Go API (GatewayToken → RequestID → Recovery → CORS → Dynamic Rate Limit → Auth → RBAC)
+                                              → Use Case → Repository/PostgreSQL + Audit (same transaction) → Redis
+Registered upstreams (permitted base paths) ─┘  (JWT via auth_request · per-IP limits · JSONL monitoring)
 ```
 
 ## Blueprint
@@ -25,6 +27,8 @@ Browser/Vue.js → Nginx Gateway → Go API (GatewayToken → RequestID → Reco
 | Auth                       | JWT (HS256) + Redis session (login/logout, `ViewerToken`)                        |
 | SSO                        | Microsoft Entra (OIDC) via `go-oidc`; CSRF state store; JIT user provisioning with a default role |
 | Gateway                    | Nginx reverse proxy: per-IP rate limits, WAF-ish request filtering, security headers, shared-secret handshake |
+| Gateway registry           | `gateway_apis` roles in PostgreSQL → generated nginx includes, hot-reloaded live; `auth_request` JWT protection; health probes + Redis traffic stats |
+| Management console         | Vue 3 shell + **micro frontends** (registry, simulator, monitoring, docs) at `/admin/`, Apple-style mobile-first UI |
 | Docs                        | Swagger/OpenAPI 2.0 (swag annotations → `docs/`), served at `/swagger/`          |
 | Observability              | structured JSON logs, request id, healthz / readyz, graceful shutdown             |
 
@@ -48,13 +52,14 @@ python3 -c "import secrets;print(secrets.token_urlsafe(32))"
 docker compose -f deployments/docker-compose.yml up --build
 ```
 
-| Access point          | URL                          | Notes                                      |
-| --------------------- | ---------------------------- | ------------------------------------------ |
-| API gateway           | http://localhost:18080       | only public entry point                    |
-| Swagger UI            | http://localhost:18080/swagger/index.html | OpenAPI 2.0 (disable in prod)   |
-| Mock IdP (SSO demo)   | http://localhost:9090/.well-known/openid-configuration | local OIDC provider    |
-| Postgres              | localhost:15432 (`app`/`app`) | db `go_enterprise`                        |
-| Redis                 | localhost:16379              |                                            |
+| Access point                     | URL                          | Notes                                      |
+| -------------------------------- | ---------------------------- | ------------------------------------------ |
+| API gateway                      | http://localhost:18080       | only public entry point                    |
+| Management console               | http://localhost:18080/admin/ | Vue 3 shell + micro frontends (login: `admin@example.com` / `admin123`) |
+| Swagger UI                       | http://localhost:18080/swagger/index.html | OpenAPI 2.0 (disable in prod)   |
+| Mock IdP (SSO demo)              | http://localhost:9090/.well-known/openid-configuration | local OIDC provider    |
+| Postgres                         | localhost:15432 (`app`/`app`) | db `go_enterprise`                        |
+| Redis                            | localhost:16379              |                                            |
 
 The Nginx **gateway** terminates the only public port and proxies to the Go
 API, which lives on the internal Docker network with **no published host
@@ -69,6 +74,29 @@ password: admin123
 > Change the password/hash in `migrations/009_bootstrap_admin.sql` for anything
 > other than local development, and prefer Entra/OIDC provisioning in
 > production.
+
+## Deployment (Makefile · Docker · Kubernetes)
+
+```bash
+make deploy          # setup .env + install UI + build frontend + `compose up`
+make redeploy        # rebuild images + recreate app containers
+make health          # smoke checks through the gateway
+make help            # all targets
+```
+
+Kubernetes (kind/minikube or a cluster): the gateway & API run **in one Pod**
+sharing an `emptyDir` for the registry, preserving the hot-reload semantic
+without a shared PVC.
+
+```bash
+make k8s-secret      # Secret from .env (run `make setup` first)
+make k8s-build       # build api/mock-idp/gateway images + frontend dist
+make k8s-apply       # kubectl apply -k deployments/kubernetes  (NodePort 30080)
+make k8s-logs        # tail both containers
+```
+
+OpenAPI, Entra, gateway/monitoring/console, and every environment variable are
+documented under [docs/](#documentation).
 
 ## Try it
 
@@ -116,6 +144,9 @@ curl -s -o /dev/null -w "SQLi payload → %{http_code}\n" "http://localhost:1808
 | CRUD   | `/api/v1/permissions[/{id}[/restore]]` | role:read / permission:assign |
 | CRUD   | `/api/v1/rate-limits[/{id}[/restore]]` | ratelimit:read / ratelimit:write |
 | GET/POST | `/api/v1/audit-logs`             | audit:read             |
+| CRUD   | `/api/v1/gateway/apis[/{id}[/preview | /stats | /restore]]` | apigateway:read / apigateway:manage |
+| POST   | `/api/v1/gateway/publish`        | apigateway:manage      |
+| GET    | `/internal/auth`                 | any valid session (nginx `auth_request`) |
 
 Soft-delete endpoints return 204; `POST .../{id}/restore` clears `deleted_at`.
 Hard delete is deliberately not exposed outside maintenance/retention jobs.
@@ -145,6 +176,15 @@ and the evaluator enforces the **strictest** matching rule. Counters are plain
 fixed-window Redis counters (`ratelimit:<scope>:<id>`, TTL = window). Changing
 a rule via `PUT /rate-limits/{id}` is live within the cache TTL.
 
+### Gateway registry + management console
+`gateway_apis` rows are compiled into per-API nginx includes on a shared volume
+that the gateway entrypoint hot-reloads — register/edit/delete via the REST API
+or the `/admin/` console, protect routes with `auth_request` JWT checks, then
+watch health probes and Redis-aggregated traffic in the Monitoring tab. The
+console is a Vue 3 shell that composes independent **micro frontends**
+(registry, simulator, monitoring, docs) at runtime. See
+[docs/GATEWAY.md](docs/GATEWAY.md).
+
 ### Soft delete + uniqueness
 Every table has `deleted_at TIMESTAMPTZ NULL`. Deletes are
 `UPDATE ... SET deleted_at = NOW()`; repositories always filter
@@ -173,20 +213,24 @@ APP_MIGRATIONS_PATH=./migrations go run ./cmd/api
 
 ```
 cmd/api/                         entry point, wiring a.k.a. composition root
-docs/                            generated Swagger spec (doc.go, swagger.json/yaml)
+docs/                            generated Swagger spec (doc.go, swagger.json/yaml) + guides
 internal/
   domain/                        entities + repository/use-case interfaces
-    user role permission session ratelimit audit
+    user role permission session ratelimit audit gatewayapi
   application/                   use-case implementations (transaction + audit)
-    auth user role permission ratelimit audit
-  infrastructure/                adapters: postgres, redis, jwt, entra
+    auth user role permission ratelimit audit gateway
+  infrastructure/                adapters: postgres, redis, jwt, entra, gatewayconfig, gatewaymonitor
   interface/http/                handlers, middleware, router
   interface/httpapi/             shared HTTP helpers (response, context)
   config/                        environment config
-migrations/                      001..009 SQL migrations + seed
+migrations/                      001..010 SQL migrations + seed
+frontend/                        management console: Vue 3 shell + micro frontends (src/micro)
+Makefile                         docker + kubernetes deployment automation
 deployments/docker-compose.yml   postgres + redis + api + gateway + mock-idp
 deployments/nginx/nginx.conf     reverse proxy + gateway security (rate limit, filters, headers)
-deployments/nginx/entrypoint.sh  injects X-Gateway-Token from APP_GATEWAY_TOKEN
+deployments/nginx/entrypoint.sh  X-Gateway-Token injection + registry hot-reload watcher
+deployments/nginx/Dockerfile     gateway image (nginx + console dist, for Kubernetes)
+deployments/kubernetes/          kustomize manifests (api+gateway pod, postgres, redis, mock-idp)
 deployments/mock-idp/            dependency-free local OIDC IdP (RS256) for dev/demo
 ```
 

@@ -14,6 +14,12 @@ else
     printf '\n' > "$conf"
 fi
 
+# ── Upstream API host ────────────────────────────────────────────────────────
+# nginx resolves the `upstream go_api { server api:8080; }` block at startup.
+# Docker Compose provides a DNS name `api`; on Kubernetes the API container
+# lives in the same Pod, so override to 127.0.0.1:8080 (APP_UPSTREAM_API).
+sed -i "s#server api:8080;#server ${APP_UPSTREAM_API:-api:8080};#" /etc/nginx/nginx.conf
+
 # ── Registered-API registry (dynamic nginx includes) ───────────────────────
 # The Go API writes locations/zones.conf into the shared volume. Ensure the
 # runtime layout exists so the static nginx.conf includes resolve cleanly.
